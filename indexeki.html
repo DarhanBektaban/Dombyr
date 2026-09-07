@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>dombyr.com — Taza Ún</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: #0f0c08;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #dfd0bc;
+      overflow: hidden;
+    }
+    header {
+      padding-top: 15px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+      color: #e5a93c;
+    }
+    .hint {
+      margin: 4px 0 0;
+      font-size: 0.8rem;
+      color: #9a8671;
+    }
+    .strings-container {
+      width: 100%;
+      max-width: 420px;
+      height: 72vh;
+      display: flex;
+      justify-content: space-evenly;
+      padding: 10px;
+      position: relative;
+    }
+    .string-zone {
+      width: 44%;
+      height: 100%;
+      background: linear-gradient(180deg, #1c1611 0%, #2b2016 50%, #15110d 100%);
+      border: 1px solid #3d3024;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+    .string-zone.active {
+      border-color: #e5a93c;
+      box-shadow: 0 0 15px rgba(229, 169, 60, 0.25);
+    }
+    .zone-mark {
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #5c4b3a;
+      pointer-events: none;
+    }
+    .string-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #dfc8a5;
+      box-shadow: 0 0 6px rgba(229, 169, 60, 0.5);
+      pointer-events: none;
+      transition: transform 0.04s ease;
+    }
+    #str1 .string-line { width: 3.5px; }
+    #str2 .string-line { width: 2.2px; }
+    .string-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #d1b590;
+      pointer-events: none;
+    }
+    footer {
+      padding-bottom: 15px;
+      font-size: 0.72rem;
+      color: #635342;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>DOMBYR.COM</h1>
+    <div class="hint">Joǵarysy — qońyr ún | Tómengi jaǵy — shańqyl qaqpa</div>
+  </header>
+
+  <div class="strings-container">
+    <div class="string-zone" id="str1">
+      <div class="zone-mark">Jumsaq (Moıyn)</div>
+      <div class="string-line"></div>
+      <div class="string-name">Ústińgi Qyl</div>
+      <div class="zone-mark">Shańqyl (Shanaq)</div>
+    </div>
+
+    <div class="string-zone" id="str2">
+      <div class="zone-mark">Jumsaq (Moıyn)</div>
+      <div class="string-line"></div>
+      <div class="string-name">Astyńǵy Qyl</div>
+      <div class="zone-mark">Shańqyl (Shanaq)</div>
+    </div>
+  </div>
+
+  <footer>Joǵary-tómen túrtip úndi ózgertip baıqańyz</footer>
+
+  <script>
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let ctx = null;
+
+    const NOTES = {
+      str1: 146.83, // D3 (Re)
+      str2: 196.00  // G3 (Sol)
+    };
+
+    // Tıgen orny men kúshtiligine baılanysty dombyra úni
+    function playDombraPluck(freq, yFactor) {
+      if (!ctx) ctx = new AudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const sampleRate = ctx.sampleRate;
+      const bufferSize = Math.round(sampleRate / freq);
+      const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+      const output = buffer.getChannelData(0);
+
+      // yFactor (0 = joǵary/jumsaq; 1 = tómeni/shańqyl)
+      // Joǵary túrtse jymdańqy tolqyn, tómengi shanaqqa túrtse ótkir shu
+      for (let i = 0; i < bufferSize; i++) {
+        const noise = (Math.random() * 2 - 1);
+        const sharpness = 0.2 + (yFactor * 0.4); 
+        output[i] = noise * Math.exp(-i / (bufferSize * sharpness));
+      }
+
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = buffer;
+      noiseSource.loop = true;
+
+      // Akustıkalyq súzgi (Filter)
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      
+      // Joǵary basylsa 500-800 Hz (qońyr), tómengi jaǵyn bassa 2500-4500 Hz (shańqyl shertis)
+      const baseCutoff = freq * (1.5 + (yFactor * 6.5));
+      filter.frequency.setValueAtTime(baseCutoff, ctx.currentTime);
+      filter.Q.value = 1.0 + (yFactor * 2.5); // Rezonans
+
+      // Dybystyń báseńdeui
+      const gain = ctx.createGain();
+      const decayTime = 1.6 - (yFactor * 0.4); // Shańqyl tezirek sönedi, qońyr uzaq gúldeıdi
+      gain.gain.setValueAtTime(0.85, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + decayTime);
+
+      noiseSource.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noiseSource.start();
+      noiseSource.stop(ctx.currentTime + decayTime);
+    }
+
+    function handleTouch(element, clientY) {
+      const rect = element.getBoundingClientRect();
+      let yFactor = (clientY - rect.top) / rect.height;
+      yFactor = Math.max(0, Math.min(1, yFactor)); // 0..1 aralyǵy
+
+      const id = element.id;
+      playDombraPluck(NOTES[id], yFactor);
+
+      // Vızualdy baılanys
+      element.classList.add('active');
+      const line = element.querySelector('.string-line');
+      const shift = (Math.random() > 0.5 ? 1 : -1) * (2 + yFactor * 3);
+      line.style.transform = `translateX(-50%) skewX(${shift}deg) scaleX(${1.5 + yFactor})`;
+
+      setTimeout(() => {
+        line.style.transform = 'translateX(-50%)';
+        element.classList.remove('active');
+      }, 75);
+    }
+
+    ['str1', 'str2'].forEach(id => {
+      const el = document.getElementById(id);
+
+      el.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          handleTouch(el, e.changedTouches[i].clientY);
+        }
+      }, { passive: false });
+
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleTouch(el, e.clientY);
+      });
+    });
+  </script>
+</body>
+</html>
