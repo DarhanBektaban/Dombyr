@@ -9,13 +9,13 @@
       box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
-      touch-action: manipulation;
+      touch-action: none;
     }
     body {
       margin: 0;
       padding: 0;
       height: 100vh;
-      background: #110e0b;
+      background: #0f0c08;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -25,82 +25,78 @@
       overflow: hidden;
     }
     header {
-      padding-top: 25px;
+      padding-top: 15px;
       text-align: center;
     }
     h1 {
       margin: 0;
-      font-size: 1.6rem;
-      letter-spacing: 3px;
+      font-size: 1.5rem;
+      letter-spacing: 2px;
       color: #e5a93c;
     }
-    p {
-      margin: 6px 0 0;
-      font-size: 0.85rem;
-      opacity: 0.7;
+    .hint {
+      margin: 4px 0 0;
+      font-size: 0.8rem;
+      color: #9a8671;
     }
     .strings-container {
       width: 100%;
-      max-width: 450px;
-      height: 65vh;
+      max-width: 420px;
+      height: 72vh;
       display: flex;
       justify-content: space-evenly;
-      align-items: center;
-      padding: 10px 20px;
+      padding: 10px;
+      position: relative;
     }
-    /* Eki qyl (eki sausaq aumaǵy) */
     .string-zone {
       width: 44%;
       height: 100%;
-      background: radial-gradient(circle at center, #261e17 0%, #15110d 100%);
+      background: linear-gradient(180deg, #1c1611 0%, #2b2016 50%, #15110d 100%);
       border: 1px solid #3d3024;
-      border-radius: 20px;
+      border-radius: 24px;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
+      padding: 15px 0;
       position: relative;
-      cursor: pointer;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      transition: border-color 0.15s, transform 0.08s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      overflow: hidden;
     }
-    .string-zone:active, .string-zone.active {
+    .string-zone.active {
       border-color: #e5a93c;
-      transform: scale(0.98);
-      background: radial-gradient(circle at center, #36291e 0%, #1c150f 100%);
+      box-shadow: 0 0 15px rgba(229, 169, 60, 0.25);
     }
-    /* Qyl syzyǵy */
+    .zone-mark {
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #5c4b3a;
+      pointer-events: none;
+    }
     .string-line {
       position: absolute;
       top: 0;
       bottom: 0;
-      background: #d8c29d;
-      box-shadow: 0 0 8px rgba(229, 169, 60, 0.4);
-      transition: transform 0.05s ease;
-    }
-    #str1 .string-line {
-      width: 3.5px; /* Ústińgi ishek qalyńyraq */
-    }
-    #str2 .string-line {
-      width: 2.5px; /* Astyńǵy ishek jińishkerektau */
-    }
-    .string-name {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #bfa17c;
-      margin-top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #dfc8a5;
+      box-shadow: 0 0 6px rgba(229, 169, 60, 0.5);
       pointer-events: none;
+      transition: transform 0.04s ease;
     }
-    .string-note {
-      font-size: 0.8rem;
-      color: #7b6955;
-      margin-top: 4px;
+    #str1 .string-line { width: 3.5px; }
+    #str2 .string-line { width: 2.2px; }
+    .string-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #d1b590;
       pointer-events: none;
     }
     footer {
-      padding-bottom: 20px;
-      font-size: 0.75rem;
-      opacity: 0.5;
+      padding-bottom: 15px;
+      font-size: 0.72rem;
+      color: #635342;
     }
   </style>
 </head>
@@ -108,39 +104,38 @@
 
   <header>
     <h1>DOMBYR.COM</h1>
-    <p>Eki sausaq — qos qyl úni</p>
+    <div class="hint">Joǵarysy — qońyr ún | Tómengi jaǵy — shańqyl qaqpa</div>
   </header>
 
   <div class="strings-container">
-    <!-- 1-qyl: Ústińgi burau (Re / D3) -->
     <div class="string-zone" id="str1">
+      <div class="zone-mark">Jumsaq (Moıyn)</div>
       <div class="string-line"></div>
       <div class="string-name">Ústińgi Qyl</div>
-      <div class="string-note">Burau (D3)</div>
+      <div class="zone-mark">Shańqyl (Shanaq)</div>
     </div>
 
-    <!-- 2-qyl: Astyńǵy negizgi áuen (Sol / G3) -->
     <div class="string-zone" id="str2">
+      <div class="zone-mark">Jumsaq (Moıyn)</div>
       <div class="string-line"></div>
       <div class="string-name">Astyńǵy Qyl</div>
-      <div class="string-note">Áuen (G3)</div>
+      <div class="zone-mark">Shańqyl (Shanaq)</div>
     </div>
   </div>
 
-  <footer>Yrǵaqty sausaq ushymen sezin</footer>
+  <footer>Joǵary-tómen túrtip úndi ózgertip baıqańyz</footer>
 
   <script>
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let ctx = null;
 
-    // D3 (146.83 Hz) jáne G3 (196.00 Hz) — dástúrli Re-Sol kvartalyq dombyra búrauy
     const NOTES = {
-      str1: 146.83,
-      str2: 196.00
+      str1: 146.83, // D3 (Re)
+      str2: 196.00  // G3 (Sol)
     };
 
-    // Karplus-Strong shynaıy ishek terbelisi sintezi
-    function playPluck(freq) {
+    // Tıgen orny men kúshtiligine baılanysty dombyra úni
+    function playDombraPluck(freq, yFactor) {
       if (!ctx) ctx = new AudioContext();
       if (ctx.state === 'suspended') ctx.resume();
 
@@ -149,67 +144,75 @@
       const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
       const output = buffer.getChannelData(0);
 
-      // Ishekti barmaqpen túrtkende shyǵatyn tiri shanaq shuy (impuls)
+      // yFactor (0 = joǵary/jumsaq; 1 = tómeni/shańqyl)
+      // Joǵary túrtse jymdańqy tolqyn, tómengi shanaqqa túrtse ótkir shu
       for (let i = 0; i < bufferSize; i++) {
-        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+        const noise = (Math.random() * 2 - 1);
+        const sharpness = 0.2 + (yFactor * 0.4); 
+        output[i] = noise * Math.exp(-i / (bufferSize * sharpness));
       }
 
-      const whiteNoise = ctx.createBufferSource();
-      whiteNoise.buffer = buffer;
-      whiteNoise.loop = true;
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = buffer;
+      noiseSource.loop = true;
 
-      // Akustıkalyq aǵash shanqtyń rezonans súzgisı
+      // Akustıkalyq súzgi (Filter)
       const filter = ctx.createBiquadFilter();
       filter.type = "lowpass";
-      filter.frequency.value = freq * 3.5;
+      
+      // Joǵary basylsa 500-800 Hz (qońyr), tómengi jaǵyn bassa 2500-4500 Hz (shańqyl shertis)
+      const baseCutoff = freq * (1.5 + (yFactor * 6.5));
+      filter.frequency.setValueAtTime(baseCutoff, ctx.currentTime);
+      filter.Q.value = 1.0 + (yFactor * 2.5); // Rezonans
 
-      // Dybystyń báseńdep óshui (decay)
+      // Dybystyń báseńdeui
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.9, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.8);
+      const decayTime = 1.6 - (yFactor * 0.4); // Shańqyl tezirek sönedi, qońyr uzaq gúldeıdi
+      gain.gain.setValueAtTime(0.85, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + decayTime);
 
-      whiteNoise.connect(filter);
+      noiseSource.connect(filter);
       filter.connect(gain);
       gain.connect(ctx.destination);
 
-      whiteNoise.start();
-      whiteNoise.stop(ctx.currentTime + 1.8);
+      noiseSource.start();
+      noiseSource.stop(ctx.currentTime + decayTime);
     }
 
-    function triggerString(id) {
-      const el = document.getElementById(id);
-      el.classList.add('active');
-      playPluck(NOTES[id]);
+    function handleTouch(element, clientY) {
+      const rect = element.getBoundingClientRect();
+      let yFactor = (clientY - rect.top) / rect.height;
+      yFactor = Math.max(0, Math.min(1, yFactor)); // 0..1 aralyǵy
 
-      // Ishektiń kórnekishe dirilui
-      const line = el.querySelector('.string-line');
-      line.style.transform = 'scaleX(2.5) skewX(2deg)';
+      const id = element.id;
+      playDombraPluck(NOTES[id], yFactor);
+
+      // Vızualdy baılanys
+      element.classList.add('active');
+      const line = element.querySelector('.string-line');
+      const shift = (Math.random() > 0.5 ? 1 : -1) * (2 + yFactor * 3);
+      line.style.transform = `translateX(-50%) skewX(${shift}deg) scaleX(${1.5 + yFactor})`;
+
       setTimeout(() => {
-        line.style.transform = 'none';
-        el.classList.remove('active');
-      }, 90);
+        line.style.transform = 'translateX(-50%)';
+        element.classList.remove('active');
+      }, 75);
     }
 
-    // Telefondaǵy kóp núkteli túrtu (Multi-touch)
     ['str1', 'str2'].forEach(id => {
-      const zone = document.getElementById(id);
-      zone.addEventListener('touchstart', (e) => {
+      const el = document.getElementById(id);
+
+      el.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        triggerString(id);
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          handleTouch(el, e.changedTouches[i].clientY);
+        }
       }, { passive: false });
 
-      // Tyshqanmen ne kompiuter túrtisi úshin
-      zone.addEventListener('mousedown', (e) => {
+      el.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        triggerString(id);
+        handleTouch(el, e.clientY);
       });
-    });
-
-    // Pernetaqta arqyly da oınau (Qos sausaq: 'F' jáne 'J')
-    window.addEventListener('keydown', (e) => {
-      if (e.repeat) return;
-      if (e.code === 'KeyF') triggerString('str1');
-      if (e.code === 'KeyJ') triggerString('str2');
     });
   </script>
 </body>
