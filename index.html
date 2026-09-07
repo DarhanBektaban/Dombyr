@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>dombyr.com — Taza Ún</title>
+  <title>dombyr.com — Taza Shynaıy Ún</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,7 +15,7 @@
       margin: 0;
       padding: 0;
       height: 100vh;
-      background: #0f0c08;
+      background: radial-gradient(circle at center, #1b1510 0%, #0a0806 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -30,71 +30,98 @@
     }
     h1 {
       margin: 0;
-      font-size: 1.5rem;
-      letter-spacing: 2px;
+      font-size: 1.4rem;
+      letter-spacing: 3px;
       color: #e5a93c;
     }
     .hint {
-      margin: 4px 0 0;
-      font-size: 0.8rem;
-      color: #9a8671;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: #8c765f;
     }
-    .strings-container {
+
+    /* Dombyra sūlbasy */
+    .dombyra-wrapper {
+      position: relative;
       width: 100%;
-      max-width: 420px;
-      height: 72vh;
+      max-width: 380px;
+      height: 74vh;
       display: flex;
-      justify-content: space-evenly;
-      padding: 10px;
-      position: relative;
-    }
-    .string-zone {
-      width: 44%;
-      height: 100%;
-      background: linear-gradient(180deg, #1c1611 0%, #2b2016 50%, #15110d 100%);
-      border: 1px solid #3d3024;
-      border-radius: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      padding: 15px 0;
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    /* Aǵash shanaq */
+    .dombyra-body {
+      position: absolute;
+      width: 86%;
+      height: 98%;
+      background: radial-gradient(ellipse at 50% 70%, #523016 0%, #341c0c 45%, #1c0e06 100%);
+      border-radius: 42% 42% 50% 50% / 30% 30% 65% 65%;
+      box-shadow: inset 0 0 35px rgba(0,0,0,0.85), 0 15px 40px rgba(0,0,0,0.8);
+      border: 2px solid #5a361a;
+      display: flex;
+      justify-content: center;
       overflow: hidden;
     }
-    .string-zone.active {
-      border-color: #e5a93c;
-      box-shadow: 0 0 15px rgba(229, 169, 60, 0.25);
+
+    /* Shanaqtaǵy aǵash ónegesi men tuqyr oıymy */
+    .sound-hole {
+      position: absolute;
+      top: 60%;
+      width: 22px;
+      height: 22px;
+      background: #0d0603;
+      border-radius: 50%;
+      box-shadow: inset 0 2px 6px #000;
     }
-    .zone-mark {
-      font-size: 0.65rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: #5c4b3a;
-      pointer-events: none;
+
+    .tiek {
+      position: absolute;
+      bottom: 16%;
+      width: 100px;
+      height: 8px;
+      background: #140b06;
+      border-radius: 4px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
     }
+
+    /* Qos Qyl Aumaqtary */
+    .string-track {
+      position: relative;
+      width: 44%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+    }
+
     .string-line {
       position: absolute;
       top: 0;
       bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #dfc8a5;
-      box-shadow: 0 0 6px rgba(229, 169, 60, 0.5);
+      background: linear-gradient(to right, #eeddbb, #ffffff, #cfb180);
+      box-shadow: 0 0 5px rgba(229, 169, 60, 0.4);
       pointer-events: none;
       transition: transform 0.04s ease;
     }
-    #str1 .string-line { width: 3.5px; }
-    #str2 .string-line { width: 2.2px; }
-    .string-name {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #d1b590;
+
+    #str1 .string-line { width: 3.2px; } /* Ústińgi burau ishek */
+    #str2 .string-line { width: 2.2px; } /* Astyńǵy áuendik ishek */
+
+    .string-tag {
+      position: absolute;
+      top: 15px;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      color: #9d8063;
+      text-transform: uppercase;
       pointer-events: none;
     }
+
     footer {
-      padding-bottom: 15px;
+      padding-bottom: 12px;
       font-size: 0.72rem;
       color: #635342;
     }
@@ -104,114 +131,144 @@
 
   <header>
     <h1>DOMBYR.COM</h1>
-    <div class="hint">Joǵarysy — qońyr ún | Tómengi jaǵy — shańqyl qaqpa</div>
+    <div class="hint">Moıny (qońyr shertis) — Shanashy (shańqyl qaqpa)</div>
   </header>
 
-  <div class="strings-container">
-    <div class="string-zone" id="str1">
-      <div class="zone-mark">Jumsaq (Moıyn)</div>
-      <div class="string-line"></div>
-      <div class="string-name">Ústińgi Qyl</div>
-      <div class="zone-mark">Shańqyl (Shanaq)</div>
+  <div class="dombyra-wrapper">
+    <div class="dombyra-body">
+      <div class="sound-hole"></div>
+      <div class="tiek"></div>
     </div>
 
-    <div class="string-zone" id="str2">
-      <div class="zone-mark">Jumsaq (Moıyn)</div>
+    <!-- 1-qyl: Ústińgi Re (D3) búrauy -->
+    <div class="string-track" id="str1">
+      <div class="string-tag">Re (D3)</div>
       <div class="string-line"></div>
-      <div class="string-name">Astyńǵy Qyl</div>
-      <div class="zone-mark">Shańqyl (Shanaq)</div>
+    </div>
+
+    <!-- 2-qyl: Astyńǵy Sol (G3) áueni -->
+    <div class="string-track" id="str2">
+      <div class="string-tag">Sol (G3)</div>
+      <div class="string-line"></div>
     </div>
   </div>
 
-  <footer>Joǵary-tómen túrtip úndi ózgertip baıqańyz</footer>
+  <footer>Qos sausaqpen qyl boıyn túrtip úndi ózgertińiz</footer>
 
   <script>
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let ctx = null;
 
     const NOTES = {
-      str1: 146.83, // D3 (Re)
-      str2: 196.00  // G3 (Sol)
+      str1: 146.83, // Re (D3)
+      str2: 196.00  // Sol (G3)
     };
 
-    // Tıgen orny men kúshtiligine baılanysty dombyra úni
-    function playDombraPluck(freq, yFactor) {
+    // Shynaıy qazaqy dombyranyń obertondyq akýstıkalyq modelı
+    function playAcousticDombra(fundFreq, yFactor) {
       if (!ctx) ctx = new AudioContext();
       if (ctx.state === 'suspended') ctx.resume();
 
-      const sampleRate = ctx.sampleRate;
-      const bufferSize = Math.round(sampleRate / freq);
-      const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
-      const output = buffer.getChannelData(0);
+      const now = ctx.currentTime;
+      // yFactor: 0 = joǵary (jumsaq moıyn), 1 = tómen (shańqyl shanaq)
 
-      // yFactor (0 = joǵary/jumsaq; 1 = tómeni/shańqyl)
-      // Joǵary túrtse jymdańqy tolqyn, tómengi shanaqqa túrtse ótkir shu
-      for (let i = 0; i < bufferSize; i++) {
-        const noise = (Math.random() * 2 - 1);
-        const sharpness = 0.2 + (yFactor * 0.4); 
-        output[i] = noise * Math.exp(-i / (bufferSize * sharpness));
+      // 1. Shanaqtyń kókirek guili (Aǵash rezonansy - 280-450 Hz aralyǵy)
+      const woodResonance = ctx.createBiquadFilter();
+      woodResonance.type = "bandpass";
+      woodResonance.frequency.value = 320;
+      woodResonance.Q.value = 3.2;
+
+      const mainGain = ctx.createGain();
+      mainGain.connect(ctx.destination);
+      woodResonance.connect(mainGain);
+
+      // 2. Qazaqy dombyra qylynyń 5 kilt obertony (Garmonıkalar)
+      const harmonics = [1, 2, 3, 4, 5];
+      const weights = [
+        1.0, 
+        0.5 + yFactor * 0.4, 
+        0.25 + yFactor * 0.45, 
+        0.1 + yFactor * 0.35, 
+        0.05 + yFactor * 0.25
+      ];
+
+      harmonics.forEach((h, idx) => {
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+
+        osc.type = (idx === 0) ? "triangle" : "sawtooth";
+        osc.frequency.setValueAtTime(fundFreq * h, now);
+
+        // Qatqyl túrtis nemese qońyr úndiliktiń sönui
+        const decayTime = (1.4 / h) * (1 - yFactor * 0.25);
+        const amp = weights[idx] * (0.28 / (idx + 1));
+
+        oscGain.gain.setValueAtTime(amp, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.00001, now + decayTime);
+
+        osc.connect(oscGain);
+        oscGain.connect(mainGain);
+        oscGain.connect(woodResonance);
+
+        osc.start(now);
+        osc.stop(now + decayTime);
+      });
+
+      // 3. Tyrnaqtyń qylǵa saq ete qalǵan shynaıy shertis dybysy (Pluck Attack Noise)
+      const clickBuf = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.025), ctx.sampleRate);
+      const clickData = clickBuf.getChannelData(0);
+      for (let i = 0; i < clickData.length; i++) {
+        clickData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (clickData.length * 0.2));
       }
 
-      const noiseSource = ctx.createBufferSource();
-      noiseSource.buffer = buffer;
-      noiseSource.loop = true;
+      const clickSource = ctx.createBufferSource();
+      clickSource.buffer = clickBuf;
 
-      // Akustıkalyq súzgi (Filter)
-      const filter = ctx.createBiquadFilter();
-      filter.type = "lowpass";
-      
-      // Joǵary basylsa 500-800 Hz (qońyr), tómengi jaǵyn bassa 2500-4500 Hz (shańqyl shertis)
-      const baseCutoff = freq * (1.5 + (yFactor * 6.5));
-      filter.frequency.setValueAtTime(baseCutoff, ctx.currentTime);
-      filter.Q.value = 1.0 + (yFactor * 2.5); // Rezonans
+      const clickFilter = ctx.createBiquadFilter();
+      clickFilter.type = "highpass";
+      clickFilter.frequency.value = 800 + (yFactor * 1600); // Shanaq mańynda tyrnaq shaq ete qalady
 
-      // Dybystyń báseńdeui
-      const gain = ctx.createGain();
-      const decayTime = 1.6 - (yFactor * 0.4); // Shańqyl tezirek sönedi, qońyr uzaq gúldeıdi
-      gain.gain.setValueAtTime(0.85, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + decayTime);
+      const clickGain = ctx.createGain();
+      clickGain.gain.setValueAtTime(0.18 + (yFactor * 0.15), now);
 
-      noiseSource.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
+      clickSource.connect(clickFilter);
+      clickFilter.connect(clickGain);
+      clickGain.connect(mainGain);
 
-      noiseSource.start();
-      noiseSource.stop(ctx.currentTime + decayTime);
+      clickSource.start(now);
     }
 
-    function handleTouch(element, clientY) {
-      const rect = element.getBoundingClientRect();
+    function triggerString(el, clientY) {
+      const rect = el.getBoundingClientRect();
       let yFactor = (clientY - rect.top) / rect.height;
-      yFactor = Math.max(0, Math.min(1, yFactor)); // 0..1 aralyǵy
+      yFactor = Math.max(0, Math.min(1, yFactor));
 
-      const id = element.id;
-      playDombraPluck(NOTES[id], yFactor);
+      playAcousticDombra(NOTES[el.id], yFactor);
 
-      // Vızualdy baılanys
-      element.classList.add('active');
-      const line = element.querySelector('.string-line');
-      const shift = (Math.random() > 0.5 ? 1 : -1) * (2 + yFactor * 3);
-      line.style.transform = `translateX(-50%) skewX(${shift}deg) scaleX(${1.5 + yFactor})`;
+      // Qyldyń shynaıy serpilisi men dırili
+      const line = el.querySelector('.string-line');
+      const shift = (Math.random() > 0.5 ? 1 : -1) * (2 + yFactor * 3.5);
+      line.style.transform = `skewX(${shift}deg) scaleX(${1.4 + yFactor})`;
 
       setTimeout(() => {
-        line.style.transform = 'translateX(-50%)';
-        element.classList.remove('active');
-      }, 75);
+        line.style.transform = 'none';
+      }, 70);
     }
 
+    // Telefondaǵy Multi-touch
     ['str1', 'str2'].forEach(id => {
       const el = document.getElementById(id);
 
       el.addEventListener('touchstart', (e) => {
         e.preventDefault();
         for (let i = 0; i < e.changedTouches.length; i++) {
-          handleTouch(el, e.changedTouches[i].clientY);
+          triggerString(el, e.changedTouches[i].clientY);
         }
       }, { passive: false });
 
       el.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        handleTouch(el, e.clientY);
+        triggerString(el, e.clientY);
       });
     });
   </script>
