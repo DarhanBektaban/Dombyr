@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>dombyr.com — Taza Ún</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: #110e0b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #dfd0bc;
+      overflow: hidden;
+    }
+    header {
+      padding-top: 25px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      color: #e5a93c;
+    }
+    p {
+      margin: 6px 0 0;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+    .strings-container {
+      width: 100%;
+      max-width: 450px;
+      height: 65vh;
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    /* Eki qyl (eki sausaq aumaǵy) */
+    .string-zone {
+      width: 44%;
+      height: 100%;
+      background: radial-gradient(circle at center, #261e17 0%, #15110d 100%);
+      border: 1px solid #3d3024;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      transition: border-color 0.15s, transform 0.08s;
+    }
+    .string-zone:active, .string-zone.active {
+      border-color: #e5a93c;
+      transform: scale(0.98);
+      background: radial-gradient(circle at center, #36291e 0%, #1c150f 100%);
+    }
+    /* Qyl syzyǵy */
+    .string-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: #d8c29d;
+      box-shadow: 0 0 8px rgba(229, 169, 60, 0.4);
+      transition: transform 0.05s ease;
+    }
+    #str1 .string-line {
+      width: 3.5px; /* Ústińgi ishek qalyńyraq */
+    }
+    #str2 .string-line {
+      width: 2.5px; /* Astyńǵy ishek jińishkerektau */
+    }
+    .string-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #bfa17c;
+      margin-top: 15px;
+      pointer-events: none;
+    }
+    .string-note {
+      font-size: 0.8rem;
+      color: #7b6955;
+      margin-top: 4px;
+      pointer-events: none;
+    }
+    footer {
+      padding-bottom: 20px;
+      font-size: 0.75rem;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>DOMBYR.COM</h1>
+    <p>Eki sausaq — qos qyl úni</p>
+  </header>
+
+  <div class="strings-container">
+    <!-- 1-qyl: Ústińgi burau (Re / D3) -->
+    <div class="string-zone" id="str1">
+      <div class="string-line"></div>
+      <div class="string-name">Ústińgi Qyl</div>
+      <div class="string-note">Burau (D3)</div>
+    </div>
+
+    <!-- 2-qyl: Astyńǵy negizgi áuen (Sol / G3) -->
+    <div class="string-zone" id="str2">
+      <div class="string-line"></div>
+      <div class="string-name">Astyńǵy Qyl</div>
+      <div class="string-note">Áuen (G3)</div>
+    </div>
+  </div>
+
+  <footer>Yrǵaqty sausaq ushymen sezin</footer>
+
+  <script>
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let ctx = null;
+
+    // D3 (146.83 Hz) jáne G3 (196.00 Hz) — dástúrli Re-Sol kvartalyq dombyra búrauy
+    const NOTES = {
+      str1: 146.83,
+      str2: 196.00
+    };
+
+    // Karplus-Strong shynaıy ishek terbelisi sintezi
+    function playPluck(freq) {
+      if (!ctx) ctx = new AudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const sampleRate = ctx.sampleRate;
+      const bufferSize = Math.round(sampleRate / freq);
+      const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+      const output = buffer.getChannelData(0);
+
+      // Ishekti barmaqpen túrtkende shyǵatyn tiri shanaq shuy (impuls)
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+      }
+
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = buffer;
+      whiteNoise.loop = true;
+
+      // Akustıkalyq aǵash shanqtyń rezonans súzgisı
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = freq * 3.5;
+
+      // Dybystyń báseńdep óshui (decay)
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.9, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.8);
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      whiteNoise.start();
+      whiteNoise.stop(ctx.currentTime + 1.8);
+    }
+
+    function triggerString(id) {
+      const el = document.getElementById(id);
+      el.classList.add('active');
+      playPluck(NOTES[id]);
+
+      // Ishektiń kórnekishe dirilui
+      const line = el.querySelector('.string-line');
+      line.style.transform = 'scaleX(2.5) skewX(2deg)';
+      setTimeout(() => {
+        line.style.transform = 'none';
+        el.classList.remove('active');
+      }, 90);
+    }
+
+    // Telefondaǵy kóp núkteli túrtu (Multi-touch)
+    ['str1', 'str2'].forEach(id => {
+      const zone = document.getElementById(id);
+      zone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        triggerString(id);
+      }, { passive: false });
+
+      // Tyshqanmen ne kompiuter túrtisi úshin
+      zone.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        triggerString(id);
+      });
+    });
+
+    // Pernetaqta arqyly da oınau (Qos sausaq: 'F' jáne 'J')
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.code === 'KeyF') triggerString('str1');
+      if (e.code === 'KeyJ') triggerString('str2');
+    });
+  </script>
+</body>
+</html>
