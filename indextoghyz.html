@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>dombyr.com — Қазақы Дәстүрлі Үн</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 25%, #1c130b 0%, #050403 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #dfd0bc;
+      overflow: hidden;
+    }
+    header {
+      padding-top: 14px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      letter-spacing: 3px;
+      color: #e5a43b;
+    }
+    .hint {
+      margin-top: 3px;
+      font-size: 0.72rem;
+      color: #8c7358;
+    }
+
+    .fretboard-container {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+      height: 75vh;
+      display: flex;
+      justify-content: center;
+      background: linear-gradient(90deg, #2b170c 0%, #4a2813 50%, #1f1007 100%);
+      border-radius: 14px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.85), 0 12px 35px rgba(0,0,0,0.9);
+      border: 1px solid #5a3318;
+      overflow: hidden;
+    }
+
+    .frets-grid {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .fret {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      border-bottom: 2px solid #8e653e;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+    }
+
+    .fret-number {
+      font-size: 0.65rem;
+      color: #634327;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .string-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, #c7aa7c, #fff4de 50%, #8c6739);
+      box-shadow: 0 0 5px rgba(229, 164, 59, 0.35);
+      pointer-events: none;
+      transition: transform 0.04s ease;
+    }
+    .str1-line { left: 35%; width: 3.2px; }
+    .str2-line { left: 65%; width: 2.2px; }
+
+    .touch-lanes {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      z-index: 10;
+    }
+    .lane {
+      width: 50%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    footer {
+      padding-bottom: 14px;
+      font-size: 0.72rem;
+      color: #634f3c;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>DOMBYR.COM</h1>
+    <div class="hint">14 перне — Қазақы табиғи бұрау</div>
+  </header>
+
+  <div class="fretboard-container" id="fretboard">
+    <div class="frets-grid" id="fretsGrid"></div>
+    <div class="string-line str1-line" id="line1"></div>
+    <div class="string-line str2-line" id="line2"></div>
+    <div class="touch-lanes">
+      <div class="lane" id="lane1"></div>
+      <div class="lane" id="lane2"></div>
+    </div>
+  </div>
+
+  <footer>Жоғарғы және төменгі пернелерді шертіп үнін байқаңыз</footer>
+
+  <script>
+    const fretsGrid = document.getElementById('fretsGrid');
+    for (let i = 1; i <= 14; i++) {
+      const f = document.createElement('div');
+      f.className = 'fret';
+      f.innerHTML = `<span class="fret-number">${i}</span>`;
+      fretsGrid.appendChild(f);
+    }
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let ctx = null;
+
+    // Ашық ішектер: Ре (D3: 146.83 Гц) және Соль (G3: 196.00 Гц)
+    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 };
+
+    // Дәстүрлі 14 пернелі қазақ домбырасының табиғи ладтық интервалдары (жарты тондық тартылу емес)
+    // 1-пернеден 14-пернеге дейінгі қалыпты дыбыс биіктігінің қатынасы:
+    const TRADITIONAL_SCALE = [
+      1.06,  // 1-перне
+      1.125, // 2-перне
+      1.20,  // 3-перне
+      1.265, // 4-перне
+      1.335, // 5-перне (кварта)
+      1.42,  // 6-перне
+      1.50,  // 7-перне (квинта - орталық тірек перне)
+      1.58,  // 8-перне
+      1.68,  // 9-перне
+      1.78,  // 10-перне
+      1.88,  // 11-перне
+      2.00,  // 12-перne (октава)
+      2.12,  // 13-перне
+      2.24   // 14-перне (тым ширығып кетпейтін шек)
+    ];
+
+    function getDombraFreq(baseFreq, fretIndex) {
+      const scaleMultiplier = TRADITIONAL_SCALE[fretIndex - 1] || 1.0;
+      return baseFreq * scaleMultiplier;
+    }
+
+    function playAuthenticDombra(freq, fretNum) {
+      if (!ctx) ctx = new AudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const sampleRate = ctx.sampleRate;
+      const N = Math.round(sampleRate / freq);
+
+      // Перне төмендеген сайын дыбыс шыңылдап кетпес үшін ұзақтықты табиғи қысқарту
+      const duration = Math.max(0.6, 2.2 * Math.exp(-fretNum * 0.08));
+      const totalSamples = Math.round(sampleRate * duration);
+
+      const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      // Бастапқы серпін: жұмсақ ішектің басталуы
+      const noise = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        noise[i] = (Math.random() * 2 - 1) * Math.exp(-i / (N * 0.5));
+      }
+
+      // Жоғарғы пернелердегі металдық шыңылды басатын сөну коэффициенті
+      const decayFactor = 0.985 - (fretNum * 0.0018);
+      let prev = 0;
+      for (let i = 0; i < totalSamples; i++) {
+        if (i < N) {
+          data[i] = noise[i];
+        } else {
+          const current = (data[i - N] + prev) * 0.5 * decayFactor;
+          data[i] = current;
+          prev = current;
+        }
+      }
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+
+      // 1. Шанақтың тұрақты қоңыр резонансы (ағаш үні жоғалмайды)
+      const bodyBand = ctx.createBiquadFilter();
+      bodyBand.type = "peaking";
+      bodyBand.frequency.value = 290;
+      bodyBand.Q.value = 2.8;
+      bodyBand.gain.value = 6.0;
+
+      // 2. Жоғарғы жиілікті шектеу (артық ширығу мен металдық ызыңды кесу)
+      const toneFilter = ctx.createBiquadFilter();
+      toneFilter.type = "lowpass";
+      // Жиілік қанша көтерілсе де, домбыраға жат 3500 Гц-тен жоғары өткірлікті өткізбейді
+      toneFilter.frequency.value = Math.min(3200, freq * 3.8);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.85, ctx.currentTime);
+
+      source.connect(toneFilter);
+      toneFilter.connect(bodyBand);
+      bodyBand.connect(gain);
+      gain.connect(ctx.destination);
+
+      source.start();
+    }
+
+    function handleTouch(laneId, clientY) {
+      const board = document.getElementById('fretboard');
+      const rect = board.getBoundingClientRect();
+      const relativeY = clientY - rect.top;
+
+      let fretIndex = Math.floor((relativeY / rect.height) * 14) + 1;
+      fretIndex = Math.max(1, Math.min(14, fretIndex));
+
+      const freq = getDombraFreq(BASE_FREQS[laneId], fretIndex);
+      playAuthenticDombra(freq, fretIndex);
+
+      const line = laneId === 'lane1' ? document.getElementById('line1') : document.getElementById('line2');
+      const shift = (Math.random() > 0.5 ? 1 : -1) * 3;
+      line.style.transform = `translateX(${shift}px) scaleX(1.6)`;
+      setTimeout(() => { line.style.transform = 'none'; }, 60);
+    }
+
+    ['lane1', 'lane2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          handleTouch(id, e.changedTouches[i].clientY);
+        }
+      }, { passive: false });
+
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleTouch(id, e.clientY);
+      });
+    });
+  </script>
+</body>
+</html>
