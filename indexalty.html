@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>dombyr.com — 14 Пернелі Домбыра</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 20%, #1c140d 0%, #060503 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #dfd0bc;
+      overflow: hidden;
+    }
+    header {
+      padding-top: 10px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      letter-spacing: 3px;
+      color: #e5a43b;
+    }
+    .hint {
+      margin-top: 2px;
+      font-size: 0.72rem;
+      color: #8c7358;
+    }
+
+    /* Домбыра сабы мен пернелер аймағы */
+    .fretboard-container {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+      height: 78vh;
+      display: flex;
+      justify-content: center;
+      background: linear-gradient(90deg, #2b170c 0%, #4a2813 50%, #1f1007 100%);
+      border-radius: 12px;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.9);
+      border: 1px solid #5a3318;
+      overflow: hidden;
+    }
+
+    /* 14 Перне торы */
+    .frets-grid {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .fret {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      border-bottom: 2px solid #a37549; /* Перне жібі */
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding-left: 8px;
+    }
+
+    .fret-number {
+      font-size: 0.6rem;
+      color: #6d4d31;
+      font-weight: bold;
+      pointer-events: none;
+    }
+
+    /* Қос ішек сызығы */
+    .string-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, #d2b588, #fff6e5 50%, #997444);
+      box-shadow: 0 0 6px rgba(229, 164, 59, 0.4);
+      pointer-events: none;
+      transition: transform 0.04s ease;
+    }
+    .str1-line { left: 35%; width: 3.2px; }
+    .str2-line { left: 65%; width: 2.2px; }
+
+    /* Ішектерді басу/түрту аймағы */
+    .touch-lanes {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      z-index: 10;
+    }
+    .lane {
+      width: 50%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    footer {
+      padding-bottom: 10px;
+      font-size: 0.7rem;
+      color: #634f3c;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>DOMBYR.COM</h1>
+    <div class="hint">14 пернелі дәстүрлі үн жүйесі</div>
+  </header>
+
+  <div class="fretboard-container" id="fretboard">
+    <!-- 14 Перне сызығы -->
+    <div class="frets-grid" id="fretsGrid"></div>
+
+    <!-- Визуалды қос ішек -->
+    <div class="string-line str1-line" id="line1"></div>
+    <div class="string-line str2-line" id="line2"></div>
+
+    <!-- Түрту аймақтары (Сол жақ — Ре/жоғарғы, Оң жақ — Соль/астыңғы) -->
+    <div class="touch-lanes">
+      <div class="lane" id="lane1"></div>
+      <div class="lane" id="lane2"></div>
+    </div>
+  </div>
+
+  <footer>Пернелерді басып, қазақы сазды қоңыр үнмен шертіңіз</footer>
+
+  <script>
+    // 14 пернені динамикалық түрде салу
+    const fretsGrid = document.getElementById('fretsGrid');
+    for (let i = 1; i <= 14; i++) {
+      const fretDiv = document.createElement('div');
+      fretDiv.className = 'fret';
+      fretDiv.innerHTML = `<span class="fret-number">${i}</span>`;
+      fretsGrid.appendChild(fretDiv);
+    }
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let ctx = null;
+
+    // Ашық ішектер: 1-ішек (D3 / 146.83 Hz), 2-ішек (G3 / 196.00 Hz)
+    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 };
+
+    // Әр перне сайын жарты тонға көтерілу формуласы: f * 2^(n/12)
+    function getFretFreq(baseFreq, fretIndex) {
+      return baseFreq * Math.pow(2, fretIndex / 12);
+    }
+
+    function playAuthenticTone(freq, fretNum) {
+      if (!ctx) ctx = new AudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const now = ctx.currentTime;
+
+      // Ағаш шанақтың қоңыр акустикалық сүзгісі
+      const bodyFilter = ctx.createBiquadFilter();
+      bodyFilter.type = "bandpass";
+      bodyFilter.frequency.value = 320 + (fretNum * 15);
+      bodyFilter.Q.value = 3.5;
+
+      const mainGain = ctx.createGain();
+      mainGain.connect(ctx.destination);
+      bodyFilter.connect(mainGain);
+
+      // Домбыраның негізгі 5 гармоникалық обертоны
+      const harmonics = [1, 2, 3, 4, 5];
+      harmonics.forEach((h, idx) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+
+        osc.type = (idx === 0) ? "triangle" : "sawtooth";
+        osc.frequency.setValueAtTime(freq * h, now);
+
+        const decay = (1.5 / h) * (1 - (fretNum / 25));
+        const amp = (0.25 / (idx + 1));
+
+        g.gain.setValueAtTime(amp, now);
+        g.gain.exponentialRampToValueAtTime(0.00001, now + decay);
+
+        osc.connect(g);
+        g.connect(bodyFilter);
+        g.connect(mainGain);
+
+        osc.start(now);
+        osc.stop(now + decay);
+      });
+
+      // Тырнақ пен перне тиісінің шертісі (Click attack)
+      const snapBuf = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.02), ctx.sampleRate);
+      const data = snapBuf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.2));
+      }
+      const snapSource = ctx.createBufferSource();
+      snapSource.buffer = snapBuf;
+      const snapGain = ctx.createGain();
+      snapGain.gain.setValueAtTime(0.18, now);
+
+      snapSource.connect(snapGain);
+      snapGain.connect(mainGain);
+      snapSource.start(now);
+    }
+
+    function handleTouch(laneId, clientY) {
+      const board = document.getElementById('fretboard');
+      const rect = board.getBoundingClientRect();
+      const relativeY = clientY - rect.top;
+      
+      // 14 перненің қайсысына түскенін есептеу
+      let fretIndex = Math.floor((relativeY / rect.height) * 14) + 1;
+      fretIndex = Math.max(1, Math.min(14, fretIndex));
+
+      const finalFreq = getFretFreq(BASE_FREQS[laneId], fretIndex);
+      playAuthenticTone(finalFreq, fretIndex);
+
+      // Ішектің дірілі
+      const line = laneId === 'lane1' ? document.getElementById('line1') : document.getElementById('line2');
+      const shift = (Math.random() > 0.5 ? 1 : -1) * 3;
+      line.style.transform = `translateX(${shift}px) scaleX(1.8)`;
+      setTimeout(() => { line.style.transform = 'none'; }, 60);
+    }
+
+    ['lane1', 'lane2'].forEach(id => {
+      const el = document.getElementById(id);
+
+      el.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          handleTouch(id, e.changedTouches[i].clientY);
+        }
+      }, { passive: false });
+
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleTouch(id, e.clientY);
+      });
+    });
+  </script>
+</body>
+</html>
