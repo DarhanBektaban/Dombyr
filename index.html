@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>dombyr.com — Табиғи Үн Баспалдағы</title>
+  <title>dombyr.com — Табиғи Кең Үн</title>
   <style>
     * {
       box-sizing: border-box;
@@ -117,7 +117,7 @@
 
   <header>
     <h1>DOMBYR.COM</h1>
-    <div class="hint"> Dombyra </div>
+    <div class="hint">Қысылмайтын ашық әрі табиғи тербеліс</div>
   </header>
 
   <div class="fretboard-container" id="fretboard">
@@ -130,7 +130,7 @@
     </div>
   </div>
 
-  <footer>1-ден 14-пернеге қарай саусақпен басып үннің өсуін байқаңыз</footer>
+  <footer>Төменгі пернелердің ашық естілуін байқаңыз</footer>
 
   <script>
     const fretsGrid = document.getElementById('fretsGrid');
@@ -144,54 +144,39 @@
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let ctx = null;
 
-    // Ашық ішектер: Ре (D3: 146.83 Гц) және Соль (G3: 196.00 Гц)
-    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 };
+    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 }; // Re (D3), Sol (G3)
 
-    // 1-пернеден 14-ке қарай дыбыстың тұрақты түрде ЖОҒАРЫЛАУ интервалдары (күйдің табиғи лады)
+    // Дәстүрлі 14 пернелік көтерілу сатысы
     const ASCENDING_SCALE = [
-      1.06,  // 1-перне: бастапқы қоңыр баспалдақ
-      1.12,  // 2-перне
-      1.19,  // 3-перне
-      1.26,  // 4-перне
-      1.33,  // 5-перне (кварта)
-      1.41,  // 6-перне
-      1.50,  // 7-перне (квинта — негізгі тірек үн)
-      1.59,  // 8-перне
-      1.68,  // 9-перне
-      1.78,  // 10-перне
-      1.89,  // 11-перне
-      2.00,  // 12-перне (октава — таза екі есе жоғары)
-      2.12,  // 13-перне
-      2.24   // 14-перне (ең жоғарғы перне)
+      1.06, 1.12, 1.19, 1.26, 1.33, 1.41, 1.50,
+      1.59, 1.68, 1.78, 1.89, 2.00, 2.12, 2.24
     ];
 
     function getFretFreq(baseFreq, fretIndex) {
-      const factor = ASCENDING_SCALE[fretIndex - 1] || 1.0;
-      return baseFreq * factor;
+      return baseFreq * (ASCENDING_SCALE[fretIndex - 1] || 1.0);
     }
 
-    function playAuthenticDombra(freq, fretNum) {
+    function playAuthenticDombra(freq, fretNum, laneId) {
       if (!ctx) ctx = new AudioContext();
       if (ctx.state === 'suspended') ctx.resume();
 
       const sampleRate = ctx.sampleRate;
       const N = Math.round(sampleRate / freq);
       
-      // Перне жоғарылаған сайын қысқарған ішектің тербеліс уақыты
-      const duration = Math.max(0.7, 2.0 - (fretNum * 0.07));
+      // Төменгі пернелерде тербелісті күрт қысқартпай, кеңістікте ұстап тұру
+      const duration = Math.max(1.1, 2.1 - (fretNum * 0.035));
       const totalSamples = Math.round(sampleRate * duration);
 
       const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
       const data = buffer.getChannelData(0);
 
-      // Саусақтың ішекке тигендегі бастапқы табиғи серпіні
       const noise = new Float32Array(N);
       for (let i = 0; i < N; i++) {
-        noise[i] = (Math.random() * 2 - 1) * Math.exp(-i / (N * 0.45));
+        noise[i] = (Math.random() * 2 - 1) * Math.exp(-i / (N * 0.6));
       }
 
-      // Тұрақты сөну коэффициенті (металдық шыңылсыз)
-      const decayFactor = 0.987 - (fretNum * 0.001);
+      // Төмен түскен сайын қысылып қалмас үшін сөну коэффициентін жұмсарту
+      const decayFactor = 0.990 - (fretNum * 0.0006);
       let prev = 0;
       for (let i = 0; i < totalSamples; i++) {
         if (i < N) {
@@ -206,17 +191,17 @@
       const source = ctx.createBufferSource();
       source.buffer = buffer;
 
-      // 1. Шанақтың тұрақты қоңыр резонансы
+      // 1. Шанақтың қоңыр денесі (Перне көтерілген сайын ағаш үні қоса ашылады)
       const bodyBand = ctx.createBiquadFilter();
       bodyBand.type = "peaking";
-      bodyBand.frequency.value = 300;
-      bodyBand.Q.value = 2.6;
-      bodyBand.gain.value = 5.5;
+      bodyBand.frequency.value = 280 + (fretNum * 10);
+      bodyBand.Q.value = 2.2;
+      bodyBand.gain.value = 6.0 + (fretNum * 0.2); // Төмендеген сайын көлемі артады
 
-      // 2. Дыбыстың табиғи домбыралық тембрі
+      // 2. Дыбыстың ашық тынысы (Тым тар сүзгіні кеңейту)
       const toneFilter = ctx.createBiquadFilter();
       toneFilter.type = "lowpass";
-      toneFilter.frequency.value = Math.min(3800, freq * 4.2);
+      toneFilter.frequency.value = Math.min(5200, freq * 4.8);
 
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(0.85, ctx.currentTime);
@@ -227,6 +212,25 @@
       gain.connect(ctx.destination);
 
       source.start();
+
+      // 3. Симпатикалық үн: Бос ішектің қосыла дірілдеуі (Тек 7-пернеден бастап қосылады)
+      if (fretNum >= 6) {
+        const droneFreq = laneId === 'lane2' ? BASE_FREQS.lane1 : BASE_FREQS.lane2;
+        const droneOsc = ctx.createOscillator();
+        const droneGain = ctx.createGain();
+
+        droneOsc.type = "triangle";
+        droneOsc.frequency.setValueAtTime(droneFreq, ctx.currentTime);
+
+        droneGain.gain.setValueAtTime(0.08, ctx.currentTime);
+        droneGain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.2);
+
+        droneOsc.connect(droneGain);
+        droneGain.connect(gain);
+
+        droneOsc.start();
+        droneOsc.stop(ctx.currentTime + 1.2);
+      }
     }
 
     function handleTouch(laneId, clientY) {
@@ -234,12 +238,11 @@
       const rect = board.getBoundingClientRect();
       const relativeY = clientY - rect.top;
 
-      // Үстіңгі жақ — 1-перне, төмен түскен сайын 14-ке дейін өседі
       let fretIndex = Math.floor((relativeY / rect.height) * 14) + 1;
       fretIndex = Math.max(1, Math.min(14, fretIndex));
 
       const freq = getFretFreq(BASE_FREQS[laneId], fretIndex);
-      playAuthenticDombra(freq, fretIndex);
+      playAuthenticDombra(freq, fretIndex, laneId);
 
       const line = laneId === 'lane1' ? document.getElementById('line1') : document.getElementById('line2');
       const shift = (Math.random() > 0.5 ? 1 : -1) * 3;
