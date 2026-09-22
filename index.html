@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>dombyr.com — 14 Пернелі Домбыра</title>
+  <title>dombyr.com — Табиғи Қоңыр Үн</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,7 +15,7 @@
       margin: 0;
       padding: 0;
       height: 100vh;
-      background: radial-gradient(circle at 50% 20%, #1c140d 0%, #060503 100%);
+      background: radial-gradient(circle at 50% 30%, #1a120b 0%, #050403 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -25,7 +25,7 @@
       overflow: hidden;
     }
     header {
-      padding-top: 10px;
+      padding-top: 15px;
       text-align: center;
     }
     h1 {
@@ -35,27 +35,25 @@
       color: #e5a43b;
     }
     .hint {
-      margin-top: 2px;
+      margin-top: 4px;
       font-size: 0.72rem;
       color: #8c7358;
     }
 
-    /* Домбыра сабы мен пернелер аймағы */
     .fretboard-container {
       position: relative;
       width: 100%;
       max-width: 320px;
-      height: 78vh;
+      height: 75vh;
       display: flex;
       justify-content: center;
       background: linear-gradient(90deg, #2b170c 0%, #4a2813 50%, #1f1007 100%);
-      border-radius: 12px;
-      box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.9);
+      border-radius: 14px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.85), 0 12px 35px rgba(0,0,0,0.9);
       border: 1px solid #5a3318;
       overflow: hidden;
     }
 
-    /* 14 Перне торы */
     .frets-grid {
       position: absolute;
       top: 0;
@@ -69,34 +67,31 @@
       position: relative;
       width: 100%;
       flex: 1;
-      border-bottom: 2px solid #a37549; /* Перне жібі */
+      border-bottom: 2px solid #8e653e;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      padding-left: 8px;
+      padding-left: 10px;
     }
 
     .fret-number {
-      font-size: 0.6rem;
-      color: #6d4d31;
-      font-weight: bold;
+      font-size: 0.65rem;
+      color: #634327;
+      font-weight: 600;
       pointer-events: none;
     }
 
-    /* Қос ішек сызығы */
     .string-line {
       position: absolute;
       top: 0;
       bottom: 0;
-      background: linear-gradient(90deg, #d2b588, #fff6e5 50%, #997444);
-      box-shadow: 0 0 6px rgba(229, 164, 59, 0.4);
+      background: linear-gradient(90deg, #c7aa7c, #fff4de 50%, #8c6739);
+      box-shadow: 0 0 5px rgba(229, 164, 59, 0.35);
       pointer-events: none;
       transition: transform 0.04s ease;
     }
     .str1-line { left: 35%; width: 3.2px; }
     .str2-line { left: 65%; width: 2.2px; }
 
-    /* Ішектерді басу/түрту аймағы */
     .touch-lanes {
       position: absolute;
       top: 0;
@@ -112,8 +107,8 @@
     }
 
     footer {
-      padding-bottom: 10px;
-      font-size: 0.7rem;
+      padding-bottom: 15px;
+      font-size: 0.72rem;
       color: #634f3c;
     }
   </style>
@@ -122,124 +117,151 @@
 
   <header>
     <h1>DOMBYR.COM</h1>
-    <div class="hint">14 пернелі дәстүрлі үн жүйесі</div>
+    <div class="hint">14 перне — кең даланың қоңыр сазы</div>
   </header>
 
   <div class="fretboard-container" id="fretboard">
-    <!-- 14 Перне сызығы -->
     <div class="frets-grid" id="fretsGrid"></div>
-
-    <!-- Визуалды қос ішек -->
     <div class="string-line str1-line" id="line1"></div>
     <div class="string-line str2-line" id="line2"></div>
-
-    <!-- Түрту аймақтары (Сол жақ — Ре/жоғарғы, Оң жақ — Соль/астыңғы) -->
     <div class="touch-lanes">
       <div class="lane" id="lane1"></div>
       <div class="lane" id="lane2"></div>
     </div>
   </div>
 
-  <footer>Пернелерді басып, қазақы сазды қоңыр үнмен шертіңіз</footer>
+  <footer>Қос ішектің бірін не екеуін қатар шертіп байқаңыз</footer>
 
   <script>
-    // 14 пернені динамикалық түрде салу
     const fretsGrid = document.getElementById('fretsGrid');
     for (let i = 1; i <= 14; i++) {
-      const fretDiv = document.createElement('div');
-      fretDiv.className = 'fret';
-      fretDiv.innerHTML = `<span class="fret-number">${i}</span>`;
-      fretsGrid.appendChild(fretDiv);
+      const f = document.createElement('div');
+      f.className = 'fret';
+      f.innerHTML = `<span class="fret-number">${i}</span>`;
+      fretsGrid.appendChild(f);
     }
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let ctx = null;
+    let convolver = null;
 
-    // Ашық ішектер: 1-ішек (D3 / 146.83 Hz), 2-ішек (G3 / 196.00 Hz)
-    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 };
+    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 }; // Re (D3), Sol (G3)
 
-    // Әр перне сайын жарты тонға көтерілу формуласы: f * 2^(n/12)
+    // Табиғи кеңістік реверберациясы (ашық дала жаңғырығы)
+    function createNatureReverb(context) {
+      const length = context.sampleRate * 1.5;
+      const decay = 2.8;
+      const buffer = context.createBuffer(2, length, context.sampleRate);
+      for (let channel = 0; channel < 2; channel++) {
+        const data = buffer.getChannelData(channel);
+        for (let i = 0; i < length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+        }
+      }
+      const conv = context.createConvolver();
+      conv.buffer = buffer;
+      return conv;
+    }
+
+    function initAudio() {
+      if (!ctx) {
+        ctx = new AudioContext();
+        convolver = createNatureReverb(ctx);
+        const reverbGain = ctx.createGain();
+        reverbGain.gain.value = 0.22; // Табиғи жұмсақ жаңғырық мөлшері
+        convolver.connect(reverbGain);
+        reverbGain.connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+    }
+
     function getFretFreq(baseFreq, fretIndex) {
       return baseFreq * Math.pow(2, fretIndex / 12);
     }
 
-    function playAuthenticTone(freq, fretNum) {
-      if (!ctx) ctx = new AudioContext();
-      if (ctx.state === 'suspended') ctx.resume();
-
+    function playNatureDombra(freq, fretNum) {
+      initAudio();
       const now = ctx.currentTime;
 
-      // Ағаш шанақтың қоңыр акустикалық сүзгісі
-      const bodyFilter = ctx.createBiquadFilter();
-      bodyFilter.type = "bandpass";
-      bodyFilter.frequency.value = 320 + (fretNum * 15);
-      bodyFilter.Q.value = 3.5;
+      // 1. Ағаш шанақтың қоңыр денесі (Wood Body Resonator)
+      const woodResonance = ctx.createBiquadFilter();
+      woodResonance.type = "peaking";
+      woodResonance.frequency.value = 280; // Домбыраның қоңыр негізі
+      woodResonance.Q.value = 2.5;
+      woodResonance.gain.value = 6;
 
       const mainGain = ctx.createGain();
       mainGain.connect(ctx.destination);
-      bodyFilter.connect(mainGain);
+      mainGain.connect(convolver); // Кеңістікке қосу
+      woodResonance.connect(mainGain);
 
-      // Домбыраның негізгі 5 гармоникалық обертоны
-      const harmonics = [1, 2, 3, 4, 5];
-      harmonics.forEach((h, idx) => {
+      // 2. Жұмсақ ішек толқыны (Қатаң емес, табиғи гармоникалар)
+      const harmonics = [1, 2, 3, 4];
+      const weights = [0.45, 0.22, 0.08, 0.03]; // Жоғары өткір обертондар бәсеңдетілген
+
+      harmonics.forEach((h, i) => {
         const osc = ctx.createOscillator();
         const g = ctx.createGain();
 
-        osc.type = (idx === 0) ? "triangle" : "sawtooth";
+        // Құлаққа жұмсақ тиетін толқын
+        osc.type = "triangle";
         osc.frequency.setValueAtTime(freq * h, now);
 
-        const decay = (1.5 / h) * (1 - (fretNum / 25));
-        const amp = (0.25 / (idx + 1));
+        // Табиғи тербелістің жұмсақ сөнуі (Decay)
+        const duration = (2.2 / Math.sqrt(h)) * (1 - fretNum * 0.02);
+        const amp = weights[i];
 
         g.gain.setValueAtTime(amp, now);
-        g.gain.exponentialRampToValueAtTime(0.00001, now + decay);
+        g.gain.exponentialRampToValueAtTime(0.00001, now + duration);
 
         osc.connect(g);
-        g.connect(bodyFilter);
-        g.connect(mainGain);
+        g.connect(woodResonance);
 
         osc.start(now);
-        osc.stop(now + decay);
+        osc.stop(now + duration);
       });
 
-      // Тырнақ пен перне тиісінің шертісі (Click attack)
-      const snapBuf = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.02), ctx.sampleRate);
-      const data = snapBuf.getChannelData(0);
+      // 3. Тырнақ сыртылы емес, жұмсақ саусақ қағысының лебі (Soft Touch Impulse)
+      const touchBuf = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.03), ctx.sampleRate);
+      const data = touchBuf.getChannelData(0);
       for (let i = 0; i < data.length; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.2));
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.4));
       }
-      const snapSource = ctx.createBufferSource();
-      snapSource.buffer = snapBuf;
-      const snapGain = ctx.createGain();
-      snapGain.gain.setValueAtTime(0.18, now);
+      const touchSource = ctx.createBufferSource();
+      touchSource.buffer = touchBuf;
 
-      snapSource.connect(snapGain);
-      snapGain.connect(mainGain);
-      snapSource.start(now);
+      const touchFilter = ctx.createBiquadFilter();
+      touchFilter.type = "lowpass";
+      touchFilter.frequency.value = 900; // Өткір емес, жұмсақ шанақ лебі
+
+      const touchGain = ctx.createGain();
+      touchGain.gain.setValueAtTime(0.12, now);
+
+      touchSource.connect(touchFilter);
+      touchFilter.connect(touchGain);
+      touchGain.connect(woodResonance);
+
+      touchSource.start(now);
     }
 
     function handleTouch(laneId, clientY) {
       const board = document.getElementById('fretboard');
       const rect = board.getBoundingClientRect();
       const relativeY = clientY - rect.top;
-      
-      // 14 перненің қайсысына түскенін есептеу
+
       let fretIndex = Math.floor((relativeY / rect.height) * 14) + 1;
       fretIndex = Math.max(1, Math.min(14, fretIndex));
 
-      const finalFreq = getFretFreq(BASE_FREQS[laneId], fretIndex);
-      playAuthenticTone(finalFreq, fretIndex);
+      playNatureDombra(getFretFreq(BASE_FREQS[laneId], fretIndex), fretIndex);
 
-      // Ішектің дірілі
       const line = laneId === 'lane1' ? document.getElementById('line1') : document.getElementById('line2');
       const shift = (Math.random() > 0.5 ? 1 : -1) * 3;
-      line.style.transform = `translateX(${shift}px) scaleX(1.8)`;
+      line.style.transform = `translateX(${shift}px) scaleX(1.6)`;
       setTimeout(() => { line.style.transform = 'none'; }, 60);
     }
 
     ['lane1', 'lane2'].forEach(id => {
       const el = document.getElementById(id);
-
       el.addEventListener('touchstart', (e) => {
         e.preventDefault();
         for (let i = 0; i < e.changedTouches.length; i++) {
