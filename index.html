@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>dombyr.com — Табиғи Қоңыр Үн</title>
+  <title>dombyr.com — Жанды Домбыра Сазы</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,7 +15,7 @@
       margin: 0;
       padding: 0;
       height: 100vh;
-      background: radial-gradient(circle at 50% 30%, #1a120b 0%, #050403 100%);
+      background: radial-gradient(circle at 50% 30%, #1a110a 0%, #050403 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -25,7 +25,7 @@
       overflow: hidden;
     }
     header {
-      padding-top: 15px;
+      padding-top: 14px;
       text-align: center;
     }
     h1 {
@@ -35,7 +35,7 @@
       color: #e5a43b;
     }
     .hint {
-      margin-top: 4px;
+      margin-top: 3px;
       font-size: 0.72rem;
       color: #8c7358;
     }
@@ -107,7 +107,7 @@
     }
 
     footer {
-      padding-bottom: 15px;
+      padding-bottom: 14px;
       font-size: 0.72rem;
       color: #634f3c;
     }
@@ -117,7 +117,7 @@
 
   <header>
     <h1>DOMBYR.COM</h1>
-    <div class="hint">14 перне — кең даланың қоңыр сазы</div>
+    <div class="hint">14 перне — Жанды домбыра шертімі</div>
   </header>
 
   <div class="fretboard-container" id="fretboard">
@@ -130,7 +130,7 @@
     </div>
   </div>
 
-  <footer>Қос ішектің бірін не екеуін қатар шертіп байқаңыз</footer>
+  <footer>Пернені басып, нағыз домбыраның өткір әрі қоңыр үнін сезініңіз</footer>
 
   <script>
     const fretsGrid = document.getElementById('fretsGrid');
@@ -143,105 +143,69 @@
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let ctx = null;
-    let convolver = null;
 
     const BASE_FREQS = { lane1: 146.83, lane2: 196.00 }; // Re (D3), Sol (G3)
-
-    // Табиғи кеңістік реверберациясы (ашық дала жаңғырығы)
-    function createNatureReverb(context) {
-      const length = context.sampleRate * 1.5;
-      const decay = 2.8;
-      const buffer = context.createBuffer(2, length, context.sampleRate);
-      for (let channel = 0; channel < 2; channel++) {
-        const data = buffer.getChannelData(channel);
-        for (let i = 0; i < length; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
-        }
-      }
-      const conv = context.createConvolver();
-      conv.buffer = buffer;
-      return conv;
-    }
-
-    function initAudio() {
-      if (!ctx) {
-        ctx = new AudioContext();
-        convolver = createNatureReverb(ctx);
-        const reverbGain = ctx.createGain();
-        reverbGain.gain.value = 0.22; // Табиғи жұмсақ жаңғырық мөлшері
-        convolver.connect(reverbGain);
-        reverbGain.connect(ctx.destination);
-      }
-      if (ctx.state === 'suspended') ctx.resume();
-    }
 
     function getFretFreq(baseFreq, fretIndex) {
       return baseFreq * Math.pow(2, fretIndex / 12);
     }
 
-    function playNatureDombra(freq, fretNum) {
-      initAudio();
-      const now = ctx.currentTime;
+    // Karplus-Strong алгоритмі арқылы домбыраның ішегі мен шертіс үнін жасау
+    function playRealPluck(freq, fretNum) {
+      if (!ctx) ctx = new AudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
 
-      // 1. Ағаш шанақтың қоңыр денесі (Wood Body Resonator)
-      const woodResonance = ctx.createBiquadFilter();
-      woodResonance.type = "peaking";
-      woodResonance.frequency.value = 280; // Домбыраның қоңыр негізі
-      woodResonance.Q.value = 2.5;
-      woodResonance.gain.value = 6;
+      const sampleRate = ctx.sampleRate;
+      const N = Math.round(sampleRate / freq);
+      const duration = 2.0 * (1 - (fretNum / 30));
+      const totalSamples = Math.round(sampleRate * duration);
+      
+      const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
+      const data = buffer.getChannelData(0);
 
-      const mainGain = ctx.createGain();
-      mainGain.connect(ctx.destination);
-      mainGain.connect(convolver); // Кеңістікке қосу
-      woodResonance.connect(mainGain);
-
-      // 2. Жұмсақ ішек толқыны (Қатаң емес, табиғи гармоникалар)
-      const harmonics = [1, 2, 3, 4];
-      const weights = [0.45, 0.22, 0.08, 0.03]; // Жоғары өткір обертондар бәсеңдетілген
-
-      harmonics.forEach((h, i) => {
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-
-        // Құлаққа жұмсақ тиетін толқын
-        osc.type = "triangle";
-        osc.frequency.setValueAtTime(freq * h, now);
-
-        // Табиғи тербелістің жұмсақ сөнуі (Decay)
-        const duration = (2.2 / Math.sqrt(h)) * (1 - fretNum * 0.02);
-        const amp = weights[i];
-
-        g.gain.setValueAtTime(amp, now);
-        g.gain.exponentialRampToValueAtTime(0.00001, now + duration);
-
-        osc.connect(g);
-        g.connect(woodResonance);
-
-        osc.start(now);
-        osc.stop(now + duration);
-      });
-
-      // 3. Тырнақ сыртылы емес, жұмсақ саусақ қағысының лебі (Soft Touch Impulse)
-      const touchBuf = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.03), ctx.sampleRate);
-      const data = touchBuf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.4));
+      // Бастапқы серпін: Тырнақтың ішекті тартып жіберуі
+      const noise = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        noise[i] = (Math.random() * 2 - 1) * Math.exp(-i / (N * 0.45));
       }
-      const touchSource = ctx.createBufferSource();
-      touchSource.buffer = touchBuf;
 
-      const touchFilter = ctx.createBiquadFilter();
-      touchFilter.type = "lowpass";
-      touchFilter.frequency.value = 900; // Өткір емес, жұмсақ шанақ лебі
+      // Ішектің үздіксіз толқын сөнуі (Ring buffer сүзгісі)
+      const decayFactor = 0.988 - (freq / 20000);
+      let prev = 0;
+      for (let i = 0; i < totalSamples; i++) {
+        if (i < N) {
+          data[i] = noise[i];
+        } else {
+          const current = (data[i - N] + prev) * 0.5 * decayFactor;
+          data[i] = current;
+          prev = current;
+        }
+      }
 
-      const touchGain = ctx.createGain();
-      touchGain.gain.setValueAtTime(0.12, now);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
 
-      touchSource.connect(touchFilter);
-      touchFilter.connect(touchGain);
-      touchGain.connect(woodResonance);
+      // 1. Шанақтың ағаш резонансы (Body peak)
+      const bodyBand = ctx.createBiquadFilter();
+      bodyBand.type = "peaking";
+      bodyBand.frequency.value = 310;
+      bodyBand.Q.value = 3.0;
+      bodyBand.gain.value = 5.0;
 
-      touchSource.start(now);
+      // 2. Өткір шаңқылды реттейтін төменгі жиілік сүзгісі
+      const toneFilter = ctx.createBiquadFilter();
+      toneFilter.type = "lowpass";
+      toneFilter.frequency.value = Math.min(6500, freq * 8);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.85, ctx.currentTime);
+
+      source.connect(toneFilter);
+      toneFilter.connect(bodyBand);
+      bodyBand.connect(gain);
+      gain.connect(ctx.destination);
+
+      source.start();
     }
 
     function handleTouch(laneId, clientY) {
@@ -252,7 +216,7 @@
       let fretIndex = Math.floor((relativeY / rect.height) * 14) + 1;
       fretIndex = Math.max(1, Math.min(14, fretIndex));
 
-      playNatureDombra(getFretFreq(BASE_FREQS[laneId], fretIndex), fretIndex);
+      playRealPluck(getFretFreq(BASE_FREQS[laneId], fretIndex), fretIndex);
 
       const line = laneId === 'lane1' ? document.getElementById('line1') : document.getElementById('line2');
       const shift = (Math.random() > 0.5 ? 1 : -1) * 3;
