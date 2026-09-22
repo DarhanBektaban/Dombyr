@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>dombyr.com — Қазақы Дәстүрлі Үн</title>
+  <title>dombyr.com — Табиғи Үн Баспалдағы</title>
   <style>
     * {
       box-sizing: border-box;
@@ -117,7 +117,7 @@
 
   <header>
     <h1>DOMBYR.COM</h1>
-    <div class="hint">14 перне — Қазақы табиғи бұрау</div>
+    <div class="hint">Үсті — бастапқы перне | Төмен түскен сайын үн көтеріледі</div>
   </header>
 
   <div class="fretboard-container" id="fretboard">
@@ -130,7 +130,7 @@
     </div>
   </div>
 
-  <footer>Жоғарғы және төменгі пернелерді шертіп үнін байқаңыз</footer>
+  <footer>1-ден 14-пернеге қарай саусақпен басып үннің өсуін байқаңыз</footer>
 
   <script>
     const fretsGrid = document.getElementById('fretsGrid');
@@ -147,28 +147,27 @@
     // Ашық ішектер: Ре (D3: 146.83 Гц) және Соль (G3: 196.00 Гц)
     const BASE_FREQS = { lane1: 146.83, lane2: 196.00 };
 
-    // Дәстүрлі 14 пернелі қазақ домбырасының табиғи ладтық интервалдары (жарты тондық тартылу емес)
-    // 1-пернеден 14-пернеге дейінгі қалыпты дыбыс биіктігінің қатынасы:
-    const TRADITIONAL_SCALE = [
-      1.06,  // 1-перне
-      1.125, // 2-перне
-      1.20,  // 3-перне
-      1.265, // 4-перне
-      1.335, // 5-перне (кварта)
-      1.42,  // 6-перне
-      1.50,  // 7-перне (квинта - орталық тірек перне)
-      1.58,  // 8-перне
+    // 1-пернеден 14-ке қарай дыбыстың тұрақты түрде ЖОҒАРЫЛАУ интервалдары (күйдің табиғи лады)
+    const ASCENDING_SCALE = [
+      1.06,  // 1-перне: бастапқы қоңыр баспалдақ
+      1.12,  // 2-перне
+      1.19,  // 3-перне
+      1.26,  // 4-перне
+      1.33,  // 5-перне (кварта)
+      1.41,  // 6-перне
+      1.50,  // 7-перне (квинта — негізгі тірек үн)
+      1.59,  // 8-перне
       1.68,  // 9-перне
       1.78,  // 10-перне
-      1.88,  // 11-перне
-      2.00,  // 12-перne (октава)
+      1.89,  // 11-перне
+      2.00,  // 12-перне (октава — таза екі есе жоғары)
       2.12,  // 13-перне
-      2.24   // 14-перне (тым ширығып кетпейтін шек)
+      2.24   // 14-перне (ең жоғарғы перне)
     ];
 
-    function getDombraFreq(baseFreq, fretIndex) {
-      const scaleMultiplier = TRADITIONAL_SCALE[fretIndex - 1] || 1.0;
-      return baseFreq * scaleMultiplier;
+    function getFretFreq(baseFreq, fretIndex) {
+      const factor = ASCENDING_SCALE[fretIndex - 1] || 1.0;
+      return baseFreq * factor;
     }
 
     function playAuthenticDombra(freq, fretNum) {
@@ -177,22 +176,22 @@
 
       const sampleRate = ctx.sampleRate;
       const N = Math.round(sampleRate / freq);
-
-      // Перне төмендеген сайын дыбыс шыңылдап кетпес үшін ұзақтықты табиғи қысқарту
-      const duration = Math.max(0.6, 2.2 * Math.exp(-fretNum * 0.08));
+      
+      // Перне жоғарылаған сайын қысқарған ішектің тербеліс уақыты
+      const duration = Math.max(0.7, 2.0 - (fretNum * 0.07));
       const totalSamples = Math.round(sampleRate * duration);
 
       const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
       const data = buffer.getChannelData(0);
 
-      // Бастапқы серпін: жұмсақ ішектің басталуы
+      // Саусақтың ішекке тигендегі бастапқы табиғи серпіні
       const noise = new Float32Array(N);
       for (let i = 0; i < N; i++) {
-        noise[i] = (Math.random() * 2 - 1) * Math.exp(-i / (N * 0.5));
+        noise[i] = (Math.random() * 2 - 1) * Math.exp(-i / (N * 0.45));
       }
 
-      // Жоғарғы пернелердегі металдық шыңылды басатын сөну коэффициенті
-      const decayFactor = 0.985 - (fretNum * 0.0018);
+      // Тұрақты сөну коэффициенті (металдық шыңылсыз)
+      const decayFactor = 0.987 - (fretNum * 0.001);
       let prev = 0;
       for (let i = 0; i < totalSamples; i++) {
         if (i < N) {
@@ -207,18 +206,17 @@
       const source = ctx.createBufferSource();
       source.buffer = buffer;
 
-      // 1. Шанақтың тұрақты қоңыр резонансы (ағаш үні жоғалмайды)
+      // 1. Шанақтың тұрақты қоңыр резонансы
       const bodyBand = ctx.createBiquadFilter();
       bodyBand.type = "peaking";
-      bodyBand.frequency.value = 290;
-      bodyBand.Q.value = 2.8;
-      bodyBand.gain.value = 6.0;
+      bodyBand.frequency.value = 300;
+      bodyBand.Q.value = 2.6;
+      bodyBand.gain.value = 5.5;
 
-      // 2. Жоғарғы жиілікті шектеу (артық ширығу мен металдық ызыңды кесу)
+      // 2. Дыбыстың табиғи домбыралық тембрі
       const toneFilter = ctx.createBiquadFilter();
       toneFilter.type = "lowpass";
-      // Жиілік қанша көтерілсе де, домбыраға жат 3500 Гц-тен жоғары өткірлікті өткізбейді
-      toneFilter.frequency.value = Math.min(3200, freq * 3.8);
+      toneFilter.frequency.value = Math.min(3800, freq * 4.2);
 
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(0.85, ctx.currentTime);
@@ -236,10 +234,11 @@
       const rect = board.getBoundingClientRect();
       const relativeY = clientY - rect.top;
 
+      // Үстіңгі жақ — 1-перне, төмен түскен сайын 14-ке дейін өседі
       let fretIndex = Math.floor((relativeY / rect.height) * 14) + 1;
       fretIndex = Math.max(1, Math.min(14, fretIndex));
 
-      const freq = getDombraFreq(BASE_FREQS[laneId], fretIndex);
+      const freq = getFretFreq(BASE_FREQS[laneId], fretIndex);
       playAuthenticDombra(freq, fretIndex);
 
       const line = laneId === 'lane1' ? document.getElementById('line1') : document.getElementById('line2');
