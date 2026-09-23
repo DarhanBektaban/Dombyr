@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>dombyr.com — Табиғи Өсу Бағыты</title>
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
+    body {
+      margin: 0; padding: 0; height: 100vh;
+      background: #0f0a06; display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between;
+      font-family: sans-serif; color: #dfd0bc; overflow: hidden;
+    }
+    header { padding-top: 10px; text-align: center; }
+    h1 { margin: 0; font-size: 1.2rem; color: #e5a43b; letter-spacing: 2px; }
+    .hint { font-size: 0.75rem; color: #a88a6d; margin-top: 3px; }
+
+    .fretboard {
+      position: relative; width: 100%; max-width: 320px; height: 75vh;
+      background: linear-gradient(90deg, #2b180d, #422413 50%, #2b180d);
+      border-radius: 12px; border: 2px solid #5a351a; display: flex;
+    }
+    .frets {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+    }
+    .fret {
+      flex: 1; border-bottom: 2px solid #8e6239; display: flex;
+      align-items: center; padding-left: 8px; font-size: 0.65rem; color: #deb887;
+    }
+    .strings {
+      position: absolute; inset: 0; display: flex;
+    }
+    .lane { flex: 1; position: relative; cursor: pointer; }
+    .string-line {
+      position: absolute; top: 0; bottom: 0; left: 50%;
+      transform: translateX(-50%); background: #ecd5b3;
+      box-shadow: 0 0 6px #e5a43b; pointer-events: none;
+    }
+    #line1 { width: 3.2px; }
+    #line2 { width: 2.2px; }
+    footer { padding-bottom: 12px; font-size: 0.75rem; color: #7a634e; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DOMBYR.COM</h1>
+    <div class="hint">1-перне: Қоңыр (Төмен) ➔ 14-перне: Жіңішке (Биік)</div>
+  </header>
+
+  <div class="fretboard" id="board">
+    <div class="frets" id="frets"></div>
+    <div class="strings">
+      <div class="lane" id="lane1"><div class="string-line" id="line1"></div></div>
+      <div class="lane" id="lane2"><div class="string-line" id="line2"></div></div>
+    </div>
+  </div>
+
+  <footer>Жоғарыдан төмен қарай басқан сайын үннің көтерілуін тыңдаңыз</footer>
+
+  <script>
+    const frets = document.getElementById('frets');
+    for (let i = 1; i <= 14; i++) {
+      const d = document.createElement('div');
+      d.className = 'fret';
+      d.innerText = i + (i === 1 ? ' (Бастапқы қоңыр)' : i === 14 ? ' (Ең биік үн)' : '');
+      frets.appendChild(d);
+    }
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let ctx = null;
+
+    // Негізгі ашық ішектер: Ре (146.83 Гц) және Соль (196 Гц)
+    const BASE = { lane1: 146.83, lane2: 196.00 };
+
+    // 1-пернеден 14-ке қарай қатаң ӨСУ интервалдары
+    const SCALE = [
+      1.06, 1.12, 1.19, 1.26, 1.33, 1.41, 1.50,
+      1.59, 1.68, 1.78, 1.89, 2.00, 2.12, 2.25
+    ];
+
+    function playNote(freq, fretNum) {
+      if (!ctx) ctx = new AudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      // Жиілік дәл 1-ден 14-ке қарай өседі
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+      // Шанақтың табиғи домбыралық сүзгісі
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(Math.min(3600, freq * 3.5), ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.7, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 1.2);
+    }
+
+    function onTouch(laneId, y) {
+      const rect = document.getElementById('board').getBoundingClientRect();
+      let fret = Math.floor(((y - rect.top) / rect.height) * 14) + 1;
+      fret = Math.max(1, Math.min(14, fret));
+
+      const freq = BASE[laneId] * SCALE[fret - 1];
+      playNote(freq, fret);
+    }
+
+    ['lane1', 'lane2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('touchstart', e => {
+        e.preventDefault();
+        onTouch(id, e.touches[0].clientY);
+      }, { passive: false });
+      el.addEventListener('mousedown', e => onTouch(id, e.clientY));
+    });
+  </script>
+</body>
+</html>
