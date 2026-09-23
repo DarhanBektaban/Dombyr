@@ -233,7 +233,7 @@
       const N = Math.round(sampleRate / freq);
       
       // Перне жоғарылаған сайын ағаш демпферіне сай табиғи сөну
-      const duration = Math.max(0.75, 2.3 * Math.exp(-fretNum * 0.055));
+      const duration = Math.max(1.8, 3.8 * Math.exp(-fretNum * 0.12));
       const totalSamples = Math.round(sampleRate * duration);
 
       const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
@@ -248,7 +248,7 @@
       }
 
       // Тарамыс ішектің біркелкі сөнуі (Waveguide delay)
-      const decay = 0.990 - (fretNum * 0.0006);
+      const decay = 0.9968 - (fretNum * 0.0003);
       let prev = 0;
       for (let i = 0; i < totalSamples; i++) {
         if (i < N) {
