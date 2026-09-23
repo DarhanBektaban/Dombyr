@@ -1,0 +1,581 @@
+```html
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>dombyr.com — 14 Пернелі Физикалық Акустика Зертханасы</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      touch-action: manipulation;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: radial-gradient(circle at 50% 15%, #2a160c 0%, #120904 60%, #050201 100%);
+    }
+
+    /* Ағаш шанақ пен саптың бедері */
+    .wood-board {
+      background: linear-gradient(90deg, 
+        #1d0d05 0%, 
+        #3b1c0b 15%, 
+        #522912 48%, 
+        #5f3016 52%, 
+        #3b1c0b 85%, 
+        #1d0d05 100%);
+      box-shadow: 
+        inset 0 0 25px rgba(0,0,0,0.9),
+        0 15px 35px rgba(0,0,0,0.8),
+        0 0 0 1px #78401c;
+    }
+
+    /* Перне жібі (Орама) */
+    .fret-wire {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+
+    /* Тербелмелі ішек эффектісі */
+    .string-anim {
+      transition: transform 0.05s ease-out;
+      transform-origin: center;
+    }
+
+    .vibrating {
+      animation: stringShake 0.08s ease-in-out infinite alternate;
+    }
+
+    @keyframes stringShake {
+      0% { transform: translateX(-1.8px) scaleY(1.002); }
+      100% { transform: translateX(1.8px) scaleY(0.998); }
+    }
+
+    /* Дәстүрлі қазақы ою стилизациясы */
+    .kazakh-ornament {
+      opacity: 0.12;
+      background-image: radial-gradient(#d69e43 1px, transparent 1px);
+      background-size: 14px 14px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-[#eedbc5] flex flex-col justify-between overflow-x-hidden">
+
+  <header class="w-full max-w-md mx-auto px-4 pt-3 pb-2 text-center relative z-20">
+    <div class="flex items-center justify-between mb-1">
+      <div class="text-left">
+        <span class="text-xs uppercase tracking-widest text-[#a88257] font-semibold">Сандық Аспап</span>
+        <h1 class="text-xl sm:text-2xl font-black tracking-wider text-[#f5b842] drop-shadow-md">
+          DOMBYR<span class="text-amber-100">.COM</span>
+        </h1>
+      </div>
+      <div class="flex gap-2">
+        <button id="toggleControls" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-[#3a1d0e] border border-[#7a421e] text-[#f7d5a5] active:scale-95 transition">
+          ⚙️ Реттеу
+        </button>
+        <button id="strumChord" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 text-amber-100 shadow border border-amber-500/30 active:scale-95 transition">
+          Қос Қағыс
+        </button>
+      </div>
+    </div>
+    
+    <p class="text-[11px] text-[#bda081] flex justify-center items-center gap-2">
+      <span>1-перне: Қоңыр (Ре/Соль)</span>
+      <span class="text-[#e5a43b]">•</span>
+      <span>14-перне: Тұнық Шаңқыл (Ашық үн)</span>
+    </p>
+
+    <!-- Баптау панелі (Laboratory Controls) -->
+    <div id="controlsPanel" class="hidden mt-2 p-3 bg-[#1e0f07]/95 border border-[#6b3817] rounded-xl text-left shadow-2xl backdrop-blur-sm transition-all duration-300">
+      <div class="text-xs font-bold text-amber-400 mb-2 border-b border-[#4d250d] pb-1 flex justify-between">
+        <span>Акустикалық Физика Параметрлері</span>
+        <span class="text-[10px] text-stone-400">Шынайы Модель</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-[11px]">
+        <div>
+          <label class="block text-stone-300 mb-1">Шертіс түрі (Тырнақ / Саусақ):</label>
+          <input type="range" id="pluckBright" min="0.2" max="1.0" step="0.05" value="0.75" class="w-full accent-amber-500">
+          <div class="flex justify-between text-[9px] text-stone-400 mt-0.5">
+            <span>Жұмсақ ет</span><span>Өткір тырнақ</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-stone-300 mb-1">Шанақ күңгірі (Резонанс):</label>
+          <input type="range" id="bodyResonance" min="1.0" max="6.0" step="0.2" value="3.5" class="w-full accent-amber-500">
+          <div class="flex justify-between text-[9px] text-stone-400 mt-0.5">
+            <span>Құрғақ</span><span>Терең қоңыр</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-stone-300 mb-1">Үннің созылуы (Сүрінбеуі):</label>
+          <input type="range" id="sustain" min="0.8" max="2.5" step="0.1" value="1.4" class="w-full accent-amber-500">
+          <div class="flex justify-between text-[9px] text-stone-400 mt-0.5">
+            <span>Қысқа</span><span>Ұзақ күмбір</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-stone-300 mb-1">Бос ішек жаңғырығы (Үндестік):</label>
+          <input type="range" id="droneLevel" min="0" max="0.3" step="0.02" value="0.08" class="w-full accent-amber-500">
+          <div class="flex justify-between text-[9px] text-stone-400 mt-0.5">
+            <span>Сөндіру</span><span>Табиғи үн</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-sm mx-auto px-3 flex flex-col justify-center relative py-1">
+    
+    <!-- Сап пен Пернелер тақтасы -->
+    <div class="relative w-full h-[68vh] max-h-[580px] min-h-[460px] wood-board rounded-2xl flex shadow-2xl border border-[#783f1d] overflow-hidden select-none" id="neckBoard">
+      
+      <!-- Ою-өрнек фоны -->
+      <div class="absolute inset-0 kazakh-ornament pointer-events-none"></div>
+
+      <!-- Басқы тиек (Шамғара / Nut) -->
+      <div class="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-[#150a04] to-[#3a1d0c] border-b border-[#a87440] z-10 flex items-center justify-around px-10">
+        <div class="w-2.5 h-1 bg-[#1a0c04] rounded-full"></div>
+        <div class="w-2.5 h-1 bg-[#1a0c04] rounded-full"></div>
+      </div>
+
+      <!-- 14 Перне Торлары (Дәстүрлі арақашықтық) -->
+      <div class="absolute inset-0 flex flex-col pt-3 pointer-events-none" id="fretsContainer">
+        <!-- JS арқылы 14 перне генерацияланады -->
+      </div>
+
+      <!-- Ішектерді Көрсету (Visual Strings) -->
+      <div class="absolute top-0 bottom-0 left-[32%] w-1 -ml-0.5 pointer-events-none z-10 flex flex-col items-center">
+        <!-- 1-ішек (Үстіңгі Ре / Жуан жібек) -->
+        <div id="visStr1" class="w-[3.2px] h-full bg-gradient-to-r from-[#d9b784] via-[#fff5df] to-[#9c723f] shadow-[0_0_8px_rgba(230,170,70,0.5)] string-anim"></div>
+      </div>
+      
+      <div class="absolute top-0 bottom-0 left-[68%] w-1 -ml-0.5 pointer-events-none z-10 flex flex-col items-center">
+        <!-- 2-ішек (Астыңғы Соль / Жіңішке) -->
+        <div id="visStr2" class="w-[2.2px] h-full bg-gradient-to-r from-[#d9b784] via-[#fff5df] to-[#9c723f] shadow-[0_0_8px_rgba(230,170,70,0.5)] string-anim"></div>
+      </div>
+
+      <!-- Қолмен / Саусақпен Басу Жолақтары (Touch Lanes) -->
+      <div class="absolute inset-0 flex z-20">
+        <!-- Сол жақ жолақ: 1-ішек (Ре / D3) -->
+        <div id="lane1" class="w-1/2 h-full cursor-pointer relative active:bg-amber-500/5 transition-colors">
+          <span class="absolute bottom-2 left-3 text-[10px] font-bold text-amber-400/60 uppercase tracking-widest pointer-events-none">
+            1-Ішек (Re / D3)
+          </span>
+        </div>
+
+        <!-- Оң жақ жолақ: 2-ішек (Соль / G3) -->
+        <div id="lane2" class="w-1/2 h-full cursor-pointer relative active:bg-amber-500/5 transition-colors">
+          <span class="absolute bottom-2 right-3 text-[10px] font-bold text-amber-400/60 uppercase tracking-widest pointer-events-none text-right">
+            2-Ішек (Sol / G3)
+          </span>
+        </div>
+      </div>
+
+      <!-- Төменгі Шанақ Бастауы (Түйме және бекіткіш элементі) -->
+      <div class="absolute bottom-0 inset-x-0 h-6 bg-gradient-to-t from-[#0e0602] to-transparent pointer-events-none z-10 flex items-center justify-center">
+        <div class="w-12 h-1 bg-[#8c5123] rounded-full opacity-60"></div>
+      </div>
+    </div>
+
+    <!-- Перне ақпараты индикаторы -->
+    <div id="noteIndicator" class="h-6 mt-1 flex items-center justify-center text-xs font-semibold text-[#f5ba58] tracking-wide transition-opacity duration-200 opacity-80">
+      <span>Пернені түртіп, күй бастаңыз</span>
+    </div>
+  </main>
+
+  <footer class="w-full max-w-sm mx-auto px-4 pb-3 pt-1 text-center relative z-20">
+    <div class="grid grid-cols-3 gap-2 mb-2">
+      <button id="btnOpenStrings" class="py-2 px-1 text-[11px] font-bold rounded-xl bg-[#2b1509] border border-[#6b3514] text-amber-200 active:bg-amber-900/40 transition">
+        Бос Қос Ішек
+      </button>
+      <button id="btnErkeSylqym" class="py-2 px-1 text-[11px] font-bold rounded-xl bg-[#2b1509] border border-[#6b3514] text-amber-200 active:bg-amber-900/40 transition">
+        «Ерке Сылқым»
+      </button>
+      <button id="btnAday" class="py-2 px-1 text-[11px] font-bold rounded-xl bg-gradient-to-b from-[#47220e] to-[#2b1407] border border-[#8a471c] text-[#ffd99f] active:scale-95 transition shadow">
+        «Адай» Екпіні
+      </button>
+    </div>
+    <div class="text-[10px] text-[#785b40]">
+      Шынайы Karplus-Strong физикалық моделі • 14 пернелік қазақы лад
+    </div>
+  </footer>
+
+  <script>
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new AudioContextClass({ latencyHint: 'interactive' });
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // Дәстүрлі домбыраның ашық ішек негіздері (Re3 = 146.83 Гц, Sol3 = 196.00 Гц)
+    const BASE_FREQS = {
+      lane1: 146.832, // Үстіңгі ішек (D3)
+      lane2: 196.000  // Астыңғы ішек (G3)
+    };
+
+    // Қазақтың дәстүрлі 14 пернелік жүйесінің табиғи үндестік коэффициенттері
+    // 1-пернеден 14-пернеге дейін дыбыс биіктігі табиғи түрде көтеріледі
+    const FRET_INTERVALS = [
+      1.0667, // 1-перне: кіші секунда (~Eb3 / Ab3)
+      1.1250, // 2-перне: үлкен секунда (E3 / A3)
+      1.2000, // 3-перне: кіші терция (F3 / Bb3)
+      1.2500, // 4-перне: үлкен терция (F#3 / B3)
+      1.3333, // 5-перне: таза кварта (G3 / C4)
+      1.4062, // 6-перне: тритон / үлкейтілген 4-ші
+      1.5000, // 7-перне: таза квинта (A3 / D4)
+      1.6000, // 8-перне: кіші секста (Bb3 / Eb4)
+      1.6875, // 9-перне: үлкен секста (B3 / E4)
+      1.7778, // 10-перне: кіші септима (C4 / F4)
+      1.8750, // 11-перне: үлкен септима (C#4 / F#4)
+      2.0000, // 12-перне: октава (D4 / G4)
+      2.1333, // 13-перне: октава + кіші секунда
+      2.2500  // 14-перне: октава + үлкен секунда (Ең биік, тұнық шаңқыл)
+    ];
+
+    const FRET_NAMES = [
+      "1-перне", "2-перне", "3-перне", "4-перне", 
+      "5-перне (Саға басы)", "6-перне", "7-перне (Орта)", "8-перне", 
+      "9-перне", "10-перне", "11-перне", "12-перне (Октава)", 
+      "13-перне", "14-перне (Шаңқыл саға)"
+    ];
+
+    const fretsContainer = document.getElementById('fretsContainer');
+    
+    // Пернелердің физикалық қысқару қашықтығы (жоғарыдан төмен қарай біртіндеп тарылады)
+    // Жалпы 14 пернеге үйлесімді үлестіру
+    for (let i = 1; i <= 14; i++) {
+      const fretWrap = document.createElement('div');
+      fretWrap.className = 'w-full relative flex items-center justify-between px-2 fret-wire border-b';
+      
+      // Жоғарғы пернелер сәл кеңірек, төменгі 14-ке барғанда жинақы
+      fretWrap.style.flex = (1.55 - (i * 0.05)).toFixed(3);
+      fretWrap.style.borderColor = (i === 5 || i === 7 || i === 12) ? '#c48943' : '#693e1f';
+      fretWrap.style.borderBottomWidth = (i === 5 || i === 7 || i === 12) ? '2.5px' : '1.5px';
+
+      const fretNum = document.createElement('span');
+      fretNum.className = 'text-[9px] font-bold text-amber-200/40 select-none';
+      fretNum.innerText = i;
+
+      const fretName = document.createElement('span');
+      fretName.className = 'text-[8px] font-medium text-amber-400/25 tracking-tighter select-none';
+      if (i === 1) fretName.innerText = "Қоңыр";
+      if (i === 7) fretName.innerText = "Орта";
+      if (i === 12) fretName.innerText = "Октава";
+      if (i === 14) fretName.innerText = "Ашық үн";
+
+      fretWrap.appendChild(fretNum);
+      fretWrap.appendChild(fretName);
+      fretsContainer.appendChild(fretWrap);
+    }
+
+    const pluckBrightSlider = document.getElementById('pluckBright');
+    const bodyResonanceSlider = document.getElementById('bodyResonance');
+    const sustainSlider = document.getElementById('sustain');
+    const droneLevelSlider = document.getElementById('droneLevel');
+    const toggleControlsBtn = document.getElementById('toggleControls');
+    const controlsPanel = document.getElementById('controlsPanel');
+
+    toggleControlsBtn.addEventListener('click', () => {
+      controlsPanel.classList.toggle('hidden');
+    });
+
+    // Нағыз домбыра шанағының (Қарағай қақпақ пен үйеңкі шанақтың) 3 нүктелі резонаторы
+    function createAcousticBody(ctx, resonanceGain) {
+      // 1. Гельмгольц төменгі қуыс күңгірі (~275 Гц)
+      const helmholtz = ctx.createBiquadFilter();
+      helmholtz.type = 'peaking';
+      helmholtz.frequency.value = 275;
+      helmholtz.Q.value = 4.2;
+      helmholtz.gain.value = 4.5 * (resonanceGain / 3.0);
+
+      // 2. Қарағай қақпақтың ағаштық қоңырлығы (~480 Гц)
+      const woodDeca = ctx.createBiquadFilter();
+      woodDeca.type = 'peaking';
+      woodDeca.frequency.value = 480;
+      woodDeca.Q.value = 2.8;
+      woodDeca.gain.value = 3.5 * (resonanceGain / 3.0);
+
+      // 3. Шанақтың үстіңгі шаңқылы (~1850 Гц) - 14-пернедегі дыбыстың қысылмай ашылуына жауап береді
+      const brilliance = ctx.createBiquadFilter();
+      brilliance.type = 'peaking';
+      brilliance.frequency.value = 1850;
+      brilliance.Q.value = 2.0;
+      brilliance.gain.value = 3.0;
+
+      helmholtz.connect(woodDeca);
+      woodDeca.connect(brilliance);
+
+      return {
+        input: helmholtz,
+        output: brilliance
+      };
+    }
+
+    function synthesizeDombraPluck(freq, fretNum, laneId, velocity = 1.0) {
+      const ctx = ensureAudioContext();
+      const now = ctx.currentTime;
+
+      const sampleRate = ctx.sampleRate;
+      const basePeriod = sampleRate / freq;
+      
+      // Сүзгідегі қысылуды болдырмау үшін: 14-пернеге барғанда сөну тым жылдамдап кетпеуі қажет!
+      const userSustain = parseFloat(sustainSlider.value);
+      const userBright = parseFloat(pluckBrightSlider.value);
+      const bodyRes = parseFloat(bodyResonanceSlider.value);
+      const droneLevel = parseFloat(droneLevelSlider.value);
+
+      // Физикалық ұзақтық: Төменгі пернелер ұзағырақ, 14-перне серпінді бірақ кесілмейді
+      const duration = Math.max(0.7, (2.0 - (fretNum * 0.055)) * userSustain);
+      const totalSamples = Math.floor(sampleRate * duration);
+
+      const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
+      const channel = buffer.getChannelData(0);
+
+      const N = Math.round(basePeriod);
+      const exciter = new Float32Array(N);
+
+      // 1. АТАКА (Тырнақтың ішекке тию импульсі)
+      // 14-пернеде тұншықпас үшін тырнақ спектрін жиілікке сай динамикалық реттейміз
+      const brightFactor = userBright * (0.8 + (fretNum / 14) * 0.4);
+      for (let i = 0; i < N; i++) {
+        const noise = (Math.random() * 2 - 1);
+        // Экспоненциалды қысылмайтын соққы профилі
+        const envelope = Math.exp(-i / (N * (0.15 + (1 - brightFactor) * 0.4)));
+        exciter[i] = noise * envelope;
+      }
+
+      // 2. ДЫБЫСТЫҢ КӨТЕРІЛУІ ЖӘНЕ СӨНУІ (Feedback loop)
+      // МҰНДАҒЫ ҚАТЕ ЖОЙЫЛДЫ: Жоғары пернелердегі сөну коэффициенті тұрақтандырылды
+      // Жоғары жиіліктер үшін damping тым тұншықтырмауы керек (0.992-ден төмен түспейді)
+      const stringDamping = 0.9955 - (Math.min(fretNum, 14) * 0.00035);
+      
+      let prevSample = 0;
+      for (let i = 0; i < totalSamples; i++) {
+        if (i < N) {
+          channel[i] = exciter[i];
+        } else {
+          // Төменгі жиілік сүзгісі (Low-pass averaging):
+          // 14-пернеде қысылып қалмауы үшін арақатынас 0.5-тен гөрі ағымдағы толқынға көбірек салмақ береді
+          const highFretComp = (fretNum / 14) * 0.09;
+          const wCurrent = 0.52 + highFretComp;
+          const wPrev = 0.48 - highFretComp;
+
+          const currentSample = (channel[i - N] * wCurrent + prevSample * wPrev) * stringDamping;
+          channel[i] = currentSample;
+          prevSample = currentSample;
+        }
+      }
+
+      // 3. АУДИО ТІЗБЕК ҚҰРУ
+      const stringSource = ctx.createBufferSource();
+      stringSource.buffer = buffer;
+
+      // Жоғары пернедегі тынысты кеңейтетін өткізгіш сүзгі
+      const toneFilter = ctx.createBiquadFilter();
+      toneFilter.type = 'lowpass';
+      // 14-пернеге барғанда сүзгі шегін жоғарылатамыз (қысылмай ашық шығуы үшін)
+      const baseCutoff = Math.max(3000, freq * 7.5);
+      toneFilter.frequency.setValueAtTime(Math.min(16000, baseCutoff * userBright), now);
+
+      // Шанақ акустикасы
+      const body = createAcousticBody(ctx, bodyRes);
+
+      // Негізгі дыбыс күші
+      const mainGain = ctx.createGain();
+      const finalVolume = 0.85 * velocity;
+      mainGain.gain.setValueAtTime(finalVolume, now);
+
+      // Тізбекті қосу
+      stringSource.connect(toneFilter);
+      toneFilter.connect(body.input);
+      body.output.connect(mainGain);
+      mainGain.connect(ctx.destination);
+
+      stringSource.start(now);
+
+      // 4. ТАЗАРТЫЛҒАН ҮНДЕСТІК (Sympathetic String Resonance)
+      // БҰРЫНҒЫ ДИСОНАНС ЖӘНЕ ШУ ЖОЙЫЛДЫ:
+      // Екінші бос ішек тек нәзік, фазасы үйлесімді синусоидалық резонатор ретінде ғана жауап береді
+      if (droneLevel > 0.005) {
+        triggerCleanSympatheticDrone(ctx, laneId, fretNum, droneLevel);
+      }
+
+      // Визуалды тербелісті іске қосу
+      animateString(laneId, fretNum);
+    }
+
+    function triggerCleanSympatheticDrone(ctx, activeLane, fretNum, amount) {
+      const now = ctx.currentTime;
+      
+      // Қарама-қарсы ішектің бос тербеліс жиілігі
+      const otherBaseFreq = (activeLane === 'lane1') ? BASE_FREQS.lane2 : BASE_FREQS.lane1;
+      
+      // Бос ішектің тек нақты обертондары (Диссонантты шудың орнына таза табиғи резонанс)
+      const droneOsc = ctx.createOscillator();
+      const droneGain = ctx.createGain();
+      const droneFilter = ctx.createBiquadFilter();
+
+      droneOsc.type = 'triangle';
+      droneOsc.frequency.setValueAtTime(otherBaseFreq, now);
+
+      droneFilter.type = 'bandpass';
+      droneFilter.frequency.setValueAtTime(otherBaseFreq * 2, now);
+      droneFilter.Q.value = 6.0;
+
+      const droneVol = amount * 0.28;
+      droneGain.gain.setValueAtTime(0.0001, now);
+      droneGain.gain.linearRampToValueAtTime(droneVol, now + 0.08);
+      droneGain.gain.exponentialRampToValueAtTime(0.00001, now + 0.9);
+
+      droneOsc.connect(droneFilter);
+      droneFilter.connect(droneGain);
+      droneGain.connect(ctx.destination);
+
+      droneOsc.start(now);
+      droneOsc.stop(now + 0.95);
+    }
+
+    const visStr1 = document.getElementById('visStr1');
+    const visStr2 = document.getElementById('visStr2');
+    const noteIndicator = document.getElementById('noteIndicator');
+
+    function animateString(laneId, fretNum) {
+      const targetStr = (laneId === 'lane1') ? visStr1 : visStr2;
+      targetStr.classList.remove('vibrating');
+      void targetStr.offsetWidth; // DOM-ды қайта оқу
+      targetStr.classList.add('vibrating');
+
+      const stringName = (laneId === 'lane1') ? "Үстіңгі Re" : "Астыңғы Sol";
+      const fretName = FRET_NAMES[fretNum - 1];
+      noteIndicator.innerHTML = `<span class="text-amber-300 font-bold">${stringName}</span> — <span>${fretName}</span>`;
+
+      setTimeout(() => {
+        targetStr.classList.remove('vibrating');
+      }, 180);
+    }
+
+    function processFretTap(laneId, clientY) {
+      const board = document.getElementById('neckBoard');
+      const rect = board.getBoundingClientRect();
+      const relY = clientY - rect.top;
+
+      // 14 перненің қайсысына түскенін математикалық дәлдікпен анықтау
+      let fretIndex = Math.floor((relY / rect.height) * 14) + 1;
+      fretIndex = Math.max(1, Math.min(14, fretIndex));
+
+      const baseFreq = BASE_FREQS[laneId];
+      const targetFreq = baseFreq * FRET_INTERVALS[fretIndex - 1];
+
+      synthesizeDombraPluck(targetFreq, fretIndex, laneId, 1.0);
+    }
+
+    // Түрту және тышқан оқиғаларын бекіту
+    ['lane1', 'lane2'].forEach(laneId => {
+      const el = document.getElementById(laneId);
+
+      // Смартфондағы көп саусақты сезу (Multi-touch)
+      el.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          processFretTap(laneId, e.changedTouches[i].clientY);
+        }
+      }, { passive: false });
+
+      // Компьютерлік тышқанмен басу
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        processFretTap(laneId, e.clientY);
+      });
+    });
+
+    // Қос ішекті бірге қағу (Шынайы микро-кідіріспен)
+    function playStrum(fret1 = 1, fret2 = 1, downStrum = true) {
+      const f1 = BASE_FREQS.lane1 * FRET_INTERVALS[fret1 - 1];
+      const f2 = BASE_FREQS.lane2 * FRET_INTERVALS[fret2 - 1];
+
+      if (downStrum) {
+        synthesizeDombraPluck(f1, fret1, 'lane1', 0.9);
+        setTimeout(() => synthesizeDombraPluck(f2, fret2, 'lane2', 0.95), 16);
+      } else {
+        synthesizeDombraPluck(f2, fret2, 'lane2', 0.9);
+        setTimeout(() => synthesizeDombraPluck(f1, fret1, 'lane1', 0.95), 16);
+      }
+    }
+
+    document.getElementById('strumChord').addEventListener('click', () => {
+      playStrum(1, 1);
+    });
+
+    document.getElementById('btnOpenStrings').addEventListener('click', () => {
+      playStrum(1, 1);
+    });
+
+    // «Ерке Сылқым» тақырыбынан қысқа үзінді
+    document.getElementById('btnErkeSylqym').addEventListener('click', () => {
+      const steps = [
+        { f1: 5, f2: 5, delay: 0 },
+        { f1: 5, f2: 7, delay: 240 },
+        { f1: 5, f2: 8, delay: 480 },
+        { f1: 5, f2: 7, delay: 720 },
+        { f1: 5, f2: 5, delay: 960 },
+        { f1: 5, f2: 4, delay: 1200 },
+        { f1: 5, f2: 2, delay: 1440 },
+        { f1: 1, f2: 1, delay: 1720 }
+      ];
+      steps.forEach(s => {
+        setTimeout(() => playStrum(s.f1, s.f2, true), s.delay);
+      });
+    });
+
+    // «Адай» төкпе екпіні
+    document.getElementById('btnAday').addEventListener('click', () => {
+      const adayPattern = [
+        { f1: 1, f2: 1, t: 0, down: true },
+        { f1: 1, f2: 1, t: 120, down: false },
+        { f1: 1, f2: 1, t: 240, down: true },
+        { f1: 2, f2: 2, t: 360, down: true },
+        { f1: 2, f2: 2, t: 480, down: false },
+        { f1: 4, f2: 4, t: 600, down: true },
+        { f1: 5, f2: 5, t: 720, down: true },
+        { f1: 5, f2: 5, t: 860, down: false },
+        { f1: 5, f2: 5, t: 1000, down: true },
+        { f1: 1, f2: 1, t: 1180, down: true }
+      ];
+      adayPattern.forEach(p => {
+        setTimeout(() => playStrum(p.f1, p.f2, p.down), p.t);
+      });
+    });
+
+    // Пернетақта арқылы ойнау: 1..9, 0, -, = пернелері
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      const keyMap = {
+        '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 
+        '6': 6, '7': 7, '8': 8, '9': 9, '0': 10,
+        '-': 11, '=': 12, '[': 13, ']': 14
+      };
+      if (keyMap[e.key]) {
+        const fret = keyMap[e.key];
+        // Shift басулы болса үстіңгі ішек, жай болса астыңғы ішек
+        const lane = e.shiftKey ? 'lane1' : 'lane2';
+        const freq = BASE_FREQS[lane] * FRET_INTERVALS[fret - 1];
+        synthesizeDombraPluck(freq, fret, lane, 1.0);
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        playStrum(1, 1);
+      }
+    });
+  </script>
+</body>
+</html>
+```
