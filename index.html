@@ -3,266 +3,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>dombyr.com — Табиғи Кең Үн</title>
+  <title>dombyr.com — Табиғи Өсу Бағыты</title>
   <style>
-    * {
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: none;
-    }
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
     body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      background: radial-gradient(circle at 50% 25%, #1c130b 0%, #050403 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #dfd0bc;
-      overflow: hidden;
+      margin: 0; padding: 0; height: 100vh;
+      background: #0f0a06; display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between;
+      font-family: sans-serif; color: #dfd0bc; overflow: hidden;
     }
-    header {
-      padding-top: 14px;
-      text-align: center;
-    }
-    h1 {
-      margin: 0;
-      font-size: 1.3rem;
-      letter-spacing: 3px;
-      color: #e5a43b;
-    }
-    .hint {
-      margin-top: 3px;
-      font-size: 0.72rem;
-      color: #8c7358;
-    }
+    header { padding-top: 10px; text-align: center; }
+    h1 { margin: 0; font-size: 1.2rem; color: #e5a43b; letter-spacing: 2px; }
+    .hint { font-size: 0.75rem; color: #a88a6d; margin-top: 3px; }
 
-    .fretboard-container {
-      position: relative;
-      width: 100%;
-      max-width: 320px;
-      height: 75vh;
-      display: flex;
-      justify-content: center;
-      background: linear-gradient(90deg, #2b170c 0%, #4a2813 50%, #1f1007 100%);
-      border-radius: 14px;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.85), 0 12px 35px rgba(0,0,0,0.9);
-      border: 1px solid #5a3318;
-      overflow: hidden;
+    .fretboard {
+      position: relative; width: 100%; max-width: 320px; height: 75vh;
+      background: linear-gradient(90deg, #2b180d, #422413 50%, #2b180d);
+      border-radius: 12px; border: 2px solid #5a351a; display: flex;
     }
-
-    .frets-grid {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
+    .frets {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
     }
-
     .fret {
-      position: relative;
-      width: 100%;
-      flex: 1;
-      border-bottom: 2px solid #8e653e;
-      display: flex;
-      align-items: center;
-      padding-left: 10px;
+      flex: 1; border-bottom: 2px solid #8e6239; display: flex;
+      align-items: center; padding-left: 8px; font-size: 0.65rem; color: #deb887;
     }
-
-    .fret-number {
-      font-size: 0.65rem;
-      color: #634327;
-      font-weight: 600;
-      pointer-events: none;
+    .strings {
+      position: absolute; inset: 0; display: flex;
     }
-
+    .lane { flex: 1; position: relative; cursor: pointer; }
     .string-line {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, #c7aa7c, #fff4de 50%, #8c6739);
-      box-shadow: 0 0 5px rgba(229, 164, 59, 0.35);
-      pointer-events: none;
-      transition: transform 0.04s ease;
+      position: absolute; top: 0; bottom: 0; left: 50%;
+      transform: translateX(-50%); background: #ecd5b3;
+      box-shadow: 0 0 6px #e5a43b; pointer-events: none;
     }
-    .str1-line { left: 35%; width: 3.2px; }
-    .str2-line { left: 65%; width: 2.2px; }
-
-    .touch-lanes {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      z-index: 10;
-    }
-    .lane {
-      width: 50%;
-      height: 100%;
-      cursor: pointer;
-    }
-
-    footer {
-      padding-bottom: 14px;
-      font-size: 0.72rem;
-      color: #634f3c;
-    }
+    #line1 { width: 3.2px; }
+    #line2 { width: 2.2px; }
+    footer { padding-bottom: 12px; font-size: 0.75rem; color: #7a634e; }
   </style>
 </head>
 <body>
-
   <header>
     <h1>DOMBYR.COM</h1>
-    <div class="hint">Қысылмайтын ашық әрі табиғи тербеліс</div>
+    <div class="hint">1-перне: Қоңыр (Төмен) ➔ 14-перне: Жіңішке (Биік)</div>
   </header>
 
-  <div class="fretboard-container" id="fretboard">
-    <div class="frets-grid" id="fretsGrid"></div>
-    <div class="string-line str1-line" id="line1"></div>
-    <div class="string-line str2-line" id="line2"></div>
-    <div class="touch-lanes">
-      <div class="lane" id="lane1"></div>
-      <div class="lane" id="lane2"></div>
+  <div class="fretboard" id="board">
+    <div class="frets" id="frets"></div>
+    <div class="strings">
+      <div class="lane" id="lane1"><div class="string-line" id="line1"></div></div>
+      <div class="lane" id="lane2"><div class="string-line" id="line2"></div></div>
     </div>
   </div>
 
-  <footer>Төменгі пернелердің ашық естілуін байқаңыз</footer>
+  <footer>Жоғарыдан төмен қарай басқан сайын үннің көтерілуін тыңдаңыз</footer>
 
   <script>
-    const fretsGrid = document.getElementById('fretsGrid');
+    const frets = document.getElementById('frets');
     for (let i = 1; i <= 14; i++) {
-      const f = document.createElement('div');
-      f.className = 'fret';
-      f.innerHTML = `<span class="fret-number">${i}</span>`;
-      fretsGrid.appendChild(f);
+      const d = document.createElement('div');
+      d.className = 'fret';
+      d.innerText = i + (i === 1 ? ' (Бастапқы қоңыр)' : i === 14 ? ' (Ең биік үн)' : '');
+      frets.appendChild(d);
     }
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let ctx = null;
 
-    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 }; // Re (D3), Sol (G3)
+    // Негізгі ашық ішектер: Ре (146.83 Гц) және Соль (196 Гц)
+    const BASE = { lane1: 146.83, lane2: 196.00 };
 
-    // Дәстүрлі 14 пернелік көтерілу сатысы
-    const ASCENDING_SCALE = [
+    // 1-пернеден 14-ке қарай қатаң ӨСУ интервалдары
+    const SCALE = [
       1.06, 1.12, 1.19, 1.26, 1.33, 1.41, 1.50,
-      1.59, 1.68, 1.78, 1.89, 2.00, 2.12, 2.24
+      1.59, 1.68, 1.78, 1.89, 2.00, 2.12, 2.25
     ];
 
-    function getFretFreq(baseFreq, fretIndex) {
-      return baseFreq * (ASCENDING_SCALE[fretIndex - 1] || 1.0);
-    }
-
-    function playAuthenticDombra(freq, fretNum, laneId) {
+    function playNote(freq, fretNum) {
       if (!ctx) ctx = new AudioContext();
       if (ctx.state === 'suspended') ctx.resume();
 
-      const sampleRate = ctx.sampleRate;
-      const N = Math.round(sampleRate / freq);
-      
-      // Төменгі пернелерде тербелісті күрт қысқартпай, кеңістікте ұстап тұру
-      const duration = Math.max(1.1, 2.1 - (fretNum * 0.035));
-      const totalSamples = Math.round(sampleRate * duration);
-
-      const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
-      const data = buffer.getChannelData(0);
-
-      const noise = new Float32Array(N);
-      for (let i = 0; i < N; i++) {
-        noise[i] = (Math.random() * 2 - 1) * Math.exp(-i / (N * 0.6));
-      }
-
-      // Төмен түскен сайын қысылып қалмас үшін сөну коэффициентін жұмсарту
-      const decayFactor = 0.990 - (fretNum * 0.0006);
-      let prev = 0;
-      for (let i = 0; i < totalSamples; i++) {
-        if (i < N) {
-          data[i] = noise[i];
-        } else {
-          const current = (data[i - N] + prev) * 0.5 * decayFactor;
-          data[i] = current;
-          prev = current;
-        }
-      }
-
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-
-      // 1. Шанақтың қоңыр денесі (Перне көтерілген сайын ағаш үні қоса ашылады)
-      const bodyBand = ctx.createBiquadFilter();
-      bodyBand.type = "peaking";
-      bodyBand.frequency.value = 280 + (fretNum * 10);
-      bodyBand.Q.value = 2.2;
-      bodyBand.gain.value = 6.0 + (fretNum * 0.2); // Төмендеген сайын көлемі артады
-
-      // 2. Дыбыстың ашық тынысы (Тым тар сүзгіні кеңейту)
-      const toneFilter = ctx.createBiquadFilter();
-      toneFilter.type = "lowpass";
-      toneFilter.frequency.value = Math.min(5200, freq * 4.8);
-
+      const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.85, ctx.currentTime);
+      const filter = ctx.createBiquadFilter();
 
-      source.connect(toneFilter);
-      toneFilter.connect(bodyBand);
-      bodyBand.connect(gain);
+      // Жиілік дәл 1-ден 14-ке қарай өседі
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+      // Шанақтың табиғи домбыралық сүзгісі
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(Math.min(3600, freq * 3.5), ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.7, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(ctx.destination);
 
-      source.start();
-
-      // 3. Симпатикалық үн: Бос ішектің қосыла дірілдеуі (Тек 7-пернеден бастап қосылады)
-      if (fretNum >= 6) {
-        const droneFreq = laneId === 'lane2' ? BASE_FREQS.lane1 : BASE_FREQS.lane2;
-        const droneOsc = ctx.createOscillator();
-        const droneGain = ctx.createGain();
-
-        droneOsc.type = "triangle";
-        droneOsc.frequency.setValueAtTime(droneFreq, ctx.currentTime);
-
-        droneGain.gain.setValueAtTime(0.08, ctx.currentTime);
-        droneGain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.2);
-
-        droneOsc.connect(droneGain);
-        droneGain.connect(gain);
-
-        droneOsc.start();
-        droneOsc.stop(ctx.currentTime + 1.2);
-      }
+      osc.start();
+      osc.stop(ctx.currentTime + 1.2);
     }
 
-    function handleTouch(laneId, clientY) {
-      const board = document.getElementById('fretboard');
-      const rect = board.getBoundingClientRect();
-      const relativeY = clientY - rect.top;
+    function onTouch(laneId, y) {
+      const rect = document.getElementById('board').getBoundingClientRect();
+      let fret = Math.floor(((y - rect.top) / rect.height) * 14) + 1;
+      fret = Math.max(1, Math.min(14, fret));
 
-      let fretIndex = Math.floor((relativeY / rect.height) * 14) + 1;
-      fretIndex = Math.max(1, Math.min(14, fretIndex));
-
-      const freq = getFretFreq(BASE_FREQS[laneId], fretIndex);
-      playAuthenticDombra(freq, fretIndex, laneId);
-
-      const line = laneId === 'lane1' ? document.getElementById('line1') : document.getElementById('line2');
-      const shift = (Math.random() > 0.5 ? 1 : -1) * 3;
-      line.style.transform = `translateX(${shift}px) scaleX(1.6)`;
-      setTimeout(() => { line.style.transform = 'none'; }, 60);
+      const freq = BASE[laneId] * SCALE[fret - 1];
+      playNote(freq, fret);
     }
 
     ['lane1', 'lane2'].forEach(id => {
       const el = document.getElementById(id);
-      el.addEventListener('touchstart', (e) => {
+      el.addEventListener('touchstart', e => {
         e.preventDefault();
-        for (let i = 0; i < e.changedTouches.length; i++) {
-          handleTouch(id, e.changedTouches[i].clientY);
-        }
+        onTouch(id, e.touches[0].clientY);
       }, { passive: false });
-
-      el.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        handleTouch(id, e.clientY);
-      });
+      el.addEventListener('mousedown', e => onTouch(id, e.clientY));
     });
   </script>
 </body>
