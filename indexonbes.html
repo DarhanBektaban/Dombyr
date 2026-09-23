@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>dombyr.com — Ағаш Шанақты Сандық Домбыра</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 15%, #24160d 0%, #060402 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #e5cbaf;
+      overflow: hidden;
+    }
+    header {
+      padding-top: 10px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 3px;
+      color: #e5a43b;
+      font-weight: 700;
+    }
+    .hint {
+      margin-top: 2px;
+      font-size: 0.72rem;
+      color: #967d64;
+    }
+
+    .main-stage {
+      position: relative;
+      width: 100%;
+      max-width: 330px;
+      height: 64vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Ағаш мойын мен шанақ сұлбасы */
+    .fretboard-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #241208 0%, #4a2712 50%, #201007 100%);
+      border-radius: 12px;
+      border: 2px solid #573117;
+      box-shadow: inset 0 0 25px rgba(0,0,0,0.85), 0 10px 30px rgba(0,0,0,0.9);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .frets-grid {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .fret-slot {
+      flex: 1;
+      border-bottom: 2px solid #784c25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 0.65rem;
+      color: #b58d64;
+      pointer-events: none;
+    }
+
+    .strings-lanes {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      z-index: 10;
+    }
+    .lane {
+      flex: 1;
+      position: relative;
+      cursor: pointer;
+    }
+
+    /* Жұмсақ жібек/тарамыс ішек бейнесі (темір емес) */
+    .string-visual {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #bca178, #fff4df 50%, #876537);
+      box-shadow: 0 0 4px rgba(229, 164, 59, 0.3);
+      pointer-events: none;
+      transition: transform 0.04s ease;
+    }
+    #str1-line { width: 3.2px; }
+    #str2-line { width: 2.2px; }
+
+    /* Төменгі бір қолмен ұстауға арналған Қос Қағыс аймағы */
+    .strum-deck {
+      width: 100%;
+      max-width: 330px;
+      height: 14vh;
+      background: linear-gradient(180deg, #3d2010 0%, #1c0e06 100%);
+      border-radius: 12px;
+      border: 2px solid #63391b;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.7), 0 5px 15px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+    .strum-deck:active {
+      background: linear-gradient(180deg, #4d2915 0%, #291409 100%);
+    }
+    .strum-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #e5a43b;
+      letter-spacing: 2px;
+    }
+    .strum-sub {
+      font-size: 0.68rem;
+      color: #aa9077;
+      margin-top: 2px;
+    }
+
+    footer {
+      padding-bottom: 8px;
+      font-size: 0.7rem;
+      color: #735d48;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>DOMBYR.COM</h1>
+    <div class="hint">Ағаш шанақ пен тарамыс үні — Темір шыңғырсыз</div>
+  </header>
+
+  <div class="main-stage">
+    <div class="fretboard-wrap" id="fretboard">
+      <div class="frets-grid" id="frets"></div>
+      <div class="strings-lanes">
+        <!-- 1-ішек: Ре (Үстіңгі қоңыр бұрау) -->
+        <div class="lane" id="lane1"><div class="string-visual" id="str1-line"></div></div>
+        <!-- 2-ішек: Соль (Астыңғы әуен ішегі) -->
+        <div class="lane" id="lane2"><div class="string-visual" id="str2-line"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Бір қолмен қағуға арналған қауіпсіз аймақ -->
+  <div class="strum-deck" id="strumDeck">
+    <div class="strum-title">ҚОС ҚАҒЫС (ТАП)</div>
+    <div class="strum-sub">Саусақпен осы аралықты шертіңіз (12мс кідіріс)</div>
+  </div>
+
+  <footer>Пернені таңдаңыз немесе төменгі Қос қағысты басыңыз</footer>
+
+  <script>
+    // 14 пернені салу
+    const fretsEl = document.getElementById('frets');
+    for (let i = 1; i <= 14; i++) {
+      const f = document.createElement('div');
+      f.className = 'fret-slot';
+      f.innerHTML = `<span>${i}</span><span>${i === 1 ? 'Қоңыр' : i === 7 ? 'Орта' : i === 14 ? 'Саға' : ''}</span>`;
+      fretsEl.appendChild(f);
+    }
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let ctx = null;
+
+    // Ашық ішектер: Ре (146.83 Гц), Соль (196.00 Гц)
+    const BASE_FREQS = { lane1: 146.83, lane2: 196.00 };
+    const SCALE = [
+      1.06, 1.12, 1.19, 1.26, 1.33, 1.41, 1.50,
+      1.59, 1.68, 1.78, 1.89, 2.00, 2.12, 2.25
+    ];
+
+    let currentFret = 1; // Соңғы таңдалған перне
+
+    // Қарағай мен үйеңкінің 3 сатылы резонанстық шанағы
+    function createWoodAcoustics(ctx) {
+      // 1. Шанақ қуысының терең күңгірі (Гельмгольц ауасы: 265 Гц)
+      const helmholtz = ctx.createBiquadFilter();
+      helmholtz.type = "peaking";
+      helmholtz.frequency.value = 265;
+      helmholtz.Q.value = 3.8;
+      helmholtz.gain.value = 7.5;
+
+      // 2. Қарағай қақпақтың ағаштық икемі (430 Гц)
+      const woodDeca = ctx.createBiquadFilter();
+      woodDeca.type = "peaking";
+      woodDeca.frequency.value = 430;
+      woodDeca.Q.value = 2.6;
+      woodDeca.gain.value = 5.0;
+
+      // 3. Темір қаңылтырды өшіру (3200 Гц-тен жоғары өткір шыңғырды жұмсарту)
+      const dampingCut = ctx.createBiquadFilter();
+      dampingCut.type = "lowpass";
+      dampingCut.frequency.value = 3100;
+      dampingCut.Q.value = 0.7;
+
+      helmholtz.connect(woodDeca);
+      woodDeca.connect(dampingCut);
+
+      return { input: helmholtz, output: dampingCut };
+    }
+
+    // Таза ағаш пен тарамыс физикасы (дайын файлсыз)
+    function playPureWoodPluck(freq, fretNum, delaySec = 0) {
+      if (!ctx) ctx = new AudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const startTime = ctx.currentTime + delaySec;
+      const sampleRate = ctx.sampleRate;
+      const N = Math.round(sampleRate / freq);
+      
+      // Перне жоғарылаған сайын ағаш демпферіне сай табиғи сөну
+      const duration = Math.max(0.75, 2.3 * Math.exp(-fretNum * 0.055));
+      const totalSamples = Math.round(sampleRate * duration);
+
+      const buffer = ctx.createBuffer(1, totalSamples, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      // Саусақ еті мен тырнақ жанасуының жұмсақ импульсі (өткір шусыз)
+      const exciter = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        // Косинустық жұмсарту: темір шытырлақты жойып, майысқан тарамыс толқынын береді
+        const windowFactor = Math.sin((Math.PI * i) / N);
+        exciter[i] = (Math.random() * 2 - 1) * windowFactor * Math.exp(-i / (N * 0.45));
+      }
+
+      // Тарамыс ішектің біркелкі сөнуі (Waveguide delay)
+      const decay = 0.990 - (fretNum * 0.0006);
+      let prev = 0;
+      for (let i = 0; i < totalSamples; i++) {
+        if (i < N) {
+          data[i] = exciter[i];
+        } else {
+          // Төменгі жиіліктер сақталып, жоғарғы ызың табиғи түрде басылады
+          const filtered = (data[i - N] + prev) * 0.5 * decay;
+          data[i] = filtered;
+          prev = filtered;
+        }
+      }
+
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+
+      const body = createWoodAcoustics(ctx);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.85, startTime);
+
+      src.connect(body.input);
+      body.output.connect(gain);
+      gain.connect(ctx.destination);
+
+      src.start(startTime);
+    }
+
+    // Бір пернені шерту
+    function onLaneTouch(laneId, clientY) {
+      const rect = document.getElementById('fretboard').getBoundingClientRect();
+      const relativeY = clientY - rect.top;
+
+      currentFret = Math.floor((relativeY / rect.height) * 14) + 1;
+      currentFret = Math.max(1, Math.min(14, currentFret));
+
+      const freq = BASE_FREQS[laneId] * SCALE[currentFret - 1];
+      playPureWoodPluck(freq, currentFret, 0);
+
+      // Ішектің қозғалу анимациясы
+      const line = laneId === 'lane1' ? document.getElementById('str1-line') : document.getElementById('str2-line');
+      line.style.transform = 'translateX(-50%) scaleX(1.8)';
+      setTimeout(() => { line.style.transform = 'translateX(-50%) none'; }, 60);
+    }
+
+    // Төменгі Қос қағыс (Тірі домбырашыдай 14 мс микро-кідіріспен)
+    function onDoubleStrum() {
+      // 1-қағыс: Үстіңгі Ре ішегі (бастапқы бұрау)
+      const freq1 = BASE_FREQS.lane1;
+      playPureWoodPluck(freq1, 1, 0.0);
+
+      // 2-қағыс: 14 миллисекундтан соң астыңғы ішек (таңдалған пернемен)
+      const freq2 = BASE_FREQS.lane2 * SCALE[currentFret - 1];
+      playPureWoodPluck(freq2, currentFret, 0.014);
+
+      // Екі ішектің бірге тербелуі
+      const l1 = document.getElementById('str1-line');
+      const l2 = document.getElementById('str2-line');
+      l1.style.transform = 'translateX(-50%) scaleX(1.7)';
+      l2.style.transform = 'translateX(-50%) scaleX(1.7)';
+      setTimeout(() => {
+        l1.style.transform = 'translateX(-50%) none';
+        l2.style.transform = 'translateX(-50%) none';
+      }, 70);
+    }
+
+    // Оқиғаларды бекіту
+    ['lane1', 'lane2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('touchstart', e => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          onLaneTouch(id, e.changedTouches[i].clientY);
+        }
+      }, { passive: false });
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        onLaneTouch(id, e.clientY);
+      });
+    });
+
+    const strum = document.getElementById('strumDeck');
+    strum.addEventListener('touchstart', e => {
+      e.preventDefault();
+      onDoubleStrum();
+    }, { passive: false });
+    strum.addEventListener('mousedown', e => {
+      e.preventDefault();
+      onDoubleStrum();
+    });
+  </script>
+</body>
+</html>
