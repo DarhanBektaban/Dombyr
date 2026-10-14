@@ -521,7 +521,7 @@
     function updateStatus(fretNum) {
       fretElements.forEach((el, idx) => el.classList.toggle('active-fret', idx === fretNum));
       const tName = TUNINGS[currentTuning].name;
-      const fLabel = fretNum === 0 ? 'Ашық ішек' : `${fretNum}-перне`;
+      const fLabel = fretNum === 0 ? 'Ashyq ishek' : `${fretNum}-perne`;
       document.getElementById('statusText').innerText = `${tName} | ${fLabel}`;
     }
 
