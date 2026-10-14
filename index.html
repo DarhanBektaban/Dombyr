@@ -287,7 +287,7 @@
     <div class="control-group">
       <div class="control-label">
         <span>Kuimbir uzaqtyghy (Sustain):</span>
-        <span id="sustainVal">4.2 с</span>
+        <span id="sustainVal">4.2 s</span>
       </div>
       <input type="range" id="sustainSlider" min="2.0" max="6.0" step="0.2" value="4.2">
     </div>
@@ -295,7 +295,7 @@
     <div class="control-group">
       <div class="control-label">
         <span>Shanaq kuigngiri (Aghash teregndigi):</span>
-        <span id="bodyVal">7.5 дБ</span>
+        <span id="bodyVal">7.5 dB</span>
       </div>
       <input type="range" id="bodySlider" min="2.0" max="12.0" step="0.5" value="7.5">
     </div>
@@ -332,19 +332,19 @@
     const fretsGrid = document.getElementById('fretsGrid');
     const fretElements = [];
     const FRET_NAMES = {
-      0: 'Ашық бұрау',
-      2: 'Бас перне',
-      5: 'Қос перне (Кварта)',
-      7: 'Орта перне (Квинта)',
-      10: 'Кіші саға',
-      12: 'Үлкен саға (Октава)',
-      14: 'Құлақ перне'
+      0: 'Ashyq burauu',
+      2: 'Bas perne',
+      5: 'Qos perne (Kuuarta)',
+      7: 'Orta perne (Kuuinta)',
+      10: 'Kishi sagha',
+      12: 'Uilken sagha (Oktauua)',
+      14: 'Qulaq perne'
     };
 
     for (let i = 0; i <= 14; i++) {
       const row = document.createElement('div');
       row.className = 'fret-row' + (i === 0 ? ' open-string' : '');
-      row.innerHTML = `<span>${i === 0 ? '0 (Ашық)' : i + '-перне'}</span><span>${FRET_NAMES[i] || ''}</span>`;
+      row.innerHTML = `<span>${i === 0 ? '0 (Ashyq)' : i + '-perne'}</span><span>${FRET_NAMES[i] || ''}</span>`;
       fretsGrid.appendChild(row);
       fretElements.push(row);
     }
@@ -629,7 +629,7 @@
     document.getElementById('timbreSlider').addEventListener('input', e => {
       labTimbreCutoff = parseInt(e.target.value, 10);
       document.getElementById('timbreVal').innerText =
-        labTimbreCutoff < 2700 ? 'Мамық тарамыс' : labTimbreCutoff > 3600 ? 'Ашық саз' : 'Қоңыр';
+        labTimbreCutoff < 2700 ? 'Mamyq taramys' : labTimbreCutoff > 3600 ? 'Ashyq saz' : 'Qognyr';
     });
 
     // Сенсор және тінтуір оқиғалары
