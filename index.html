@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>dombyr.com — Толыққанды Акустикалық Зертхана</title>
+  <title>dombyr.com — Tolyqqandy Aiuuendik Zerthana</title>
   <style>
     * {
       box-sizing: border-box;
@@ -265,28 +265,28 @@
   <header>
     <div class="top-bar">
       <h1>DOMBYR.COM</h1>
-      <button class="lab-btn" id="toggleLabBtn">⚙️ Күй-баптау</button>
+      <button class="lab-btn" id="toggleLabBtn">⚙️ Kuij baptauu</button>
     </div>
     <div class="wave-bar">
       <canvas id="waveCanvas"></canvas>
-      <span class="status-text" id="statusText">Оң бұрау (Ре - Соль) | Ашық ішек</span>
+      <span class="status-text" id="statusText">Ogn burauu (Re - Sol) | Ashyq ishek</span>
     </div>
   </header>
 
   <!-- Жиналмалы Акустикалық Зертхана пульті -->
   <div class="lab-drawer" id="labDrawer">
     <div class="control-group">
-      <div class="control-label"><span>Құлақ күйі (Бұрау түрі):</span></div>
+      <div class="control-label"><span>Qulaq kuiji (Burauu tuiri):</span></div>
       <div class="tuning-pills">
-        <div class="pill active" data-tuning="on">Оң бұрау (D-G)</div>
-        <div class="pill" data-tuning="teris">Теріс бұрау (D-A)</div>
-        <div class="pill" data-tuning="qonyr">Қоңыр (C-F)</div>
+        <div class="pill active" data-tuning="on">Ogn burauu (D-G)</div>
+        <div class="pill" data-tuning="teris">Teris burauu (D-A)</div>
+        <div class="pill" data-tuning="qonyr">Qognyr (C-F)</div>
       </div>
     </div>
 
     <div class="control-group">
       <div class="control-label">
-        <span>Күмбір ұзақтығы (Sustain):</span>
+        <span>Kuimbir uzaqtyghy (Sustain):</span>
         <span id="sustainVal">4.2 с</span>
       </div>
       <input type="range" id="sustainSlider" min="2.0" max="6.0" step="0.2" value="4.2">
@@ -294,7 +294,7 @@
 
     <div class="control-group">
       <div class="control-label">
-        <span>Шанақ күңгірі (Ағаш тереңдігі):</span>
+        <span>Shanaq kuigngiri (Aghash teregndigi):</span>
         <span id="bodyVal">7.5 дБ</span>
       </div>
       <input type="range" id="bodySlider" min="2.0" max="12.0" step="0.5" value="7.5">
@@ -302,8 +302,8 @@
 
     <div class="control-group">
       <div class="control-label">
-        <span>Ішек жұмсақтығы (Тарамыс ➔ Ашық):</span>
-        <span id="timbreVal">Қоңыр</span>
+        <span>Ishek zhumsaqtyghy (Taramys ➔ Ashyq):</span>
+        <span id="timbreVal">Qognyr</span>
       </div>
       <input type="range" id="timbreSlider" min="2200" max="4500" step="100" value="3000">
     </div>
@@ -321,11 +321,11 @@
   <!-- Шанақ және Қос қағыс -->
   <div class="shanaq-deck" id="strumPad">
     <div class="tundik-hole"></div>
-    <div class="strum-title">ҚОС ҚАҒЫС (ШАНАҚ)</div>
-    <div class="strum-sub">Төмен-жоғары кезектескен тірі қағыс</div>
+    <div class="strum-title">QOS QAGHYS (SHANAQ)</div>
+    <div class="strum-sub">Tuoimen zhoghary kezektesken tiri qaghys</div>
   </div>
 
-  <footer>Пернетақта: [1-9, 0] пернелер, [Бос орын] — Қос қағыс</footer>
+  <footer>Pernetaqta: [1-9, 0] tuijmeler, [Bos oryn] — Qos qaghys</footer>
 
   <script>
     // 0 (Ашық ішек) және 1-14 пернелерді құру
@@ -351,9 +351,9 @@
 
     // Бұрау түрлері (Гц)
     const TUNINGS = {
-      on:    { lane1: 146.83, lane2: 196.00, name: 'Оң бұрау (Ре-Соль)' },
-      teris: { lane1: 146.83, lane2: 220.00, name: 'Теріс бұрау (Ре-Ля)' },
-      qonyr: { lane1: 130.81, lane2: 174.61, name: 'Қоңыр бұрау (До-Фа)' }
+      on:    { lane1: 146.83, lane2: 196.00, name: 'Ogn burauu (Re-Sol)' },
+      teris: { lane1: 146.83, lane2: 220.00, name: 'Teris burauu (Re-La)' },
+      qonyr: { lane1: 130.81, lane2: 174.61, name: 'Qognyr burauu (Do-Pa)' }
     };
 
     // Зертханалық параметрлер
